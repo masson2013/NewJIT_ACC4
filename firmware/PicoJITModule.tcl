@@ -9,9 +9,10 @@ if {[string match *.dcp $ModuleFile] == 1} {
 set tmpstr [exec pwd]
 set bits_path $tmpstr/$sysname/$sysname.bits
 cd $bits_path
-# exec ln -sf ../../../software/bit_h_gen.py bit_h_gen.py
+exec ln -sf ../../../software/bit_h_gen.py bit_h_gen.py
 
-set PR_NAME_LIST {1 2 3 4 5 6 7 8}
+# set PR_NAME_LIST {1 2 3 4 5 6 7 8}
+set PR_NAME_LIST {1 2 3 4}
 ############# PR Module ######################
 set ACC_NAME $ModuleName
 exec cp -u ../../$ACC_NAME.dcp .

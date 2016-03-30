@@ -1,5 +1,5 @@
 module jit #(
-  parameter integer NUM_ACCs = 8
+  parameter integer NUM_ACCs = 4
 )
 (
   output  wire            s11i_rdy     ,

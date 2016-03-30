@@ -51,7 +51,8 @@ write_checkpoint -force [expr {$sysname}]_original.dcp
 close_project
 
 open_checkpoint [expr {$sysname}]_original.dcp
-set PR_NAME_LIST {1 2 3 4 5 6 7 8}
+# set PR_NAME_LIST {1 2 3 4 5 6 7 8}
+set PR_NAME_LIST {1 2 3 4}
 
 set path UserWrapper/UserModule
 set LIST_LEN [llength $PR_NAME_LIST]

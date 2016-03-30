@@ -1,7 +1,7 @@
 PICO_MODEL=M505
 FPGA=LX325T
 
-PROJECT_NAME=M505_LX325T_NewJIT_ACC8
+PROJECT_NAME=M505_LX325T_NewJIT_ACC4
 USER_MODULE_NAME=jit
 USER_VERILOG_FILES=jit.v jit_switch.v jit_couple.v jit_dispatch.v jit_crossbar.v jit_mux.v prdoor.v prctrl.v
 
