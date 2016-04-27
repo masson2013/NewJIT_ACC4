@@ -296,25 +296,41 @@ generate if (NUM_ACCs == 4) begin
   wire              w112_tready;
   wire              w121_tready;
   wire              w122_tready;
-  assign            sC1_tready = w111_tready | w112_tready | w121_tready | w122_tready;
+  wire              w131_tready;
+  wire              w132_tready;
+  wire              w141_tready;
+  wire              w142_tready;
+  assign            sC1_tready = w111_tready | w112_tready | w121_tready | w122_tready | w131_tready | w132_tready | w141_tready | w142_tready;
 
   wire              w211_tready;
   wire              w212_tready;
   wire              w221_tready;
   wire              w222_tready;
-  assign            sC2_tready = w211_tready | w212_tready | w221_tready | w222_tready;
+  wire              w231_tready;
+  wire              w232_tready;
+  wire              w241_tready;
+  wire              w242_tready;
+  assign            sC2_tready = w211_tready | w212_tready | w221_tready | w222_tready | w231_tready | w232_tready | w241_tready | w242_tready;
 
   wire              w311_tready;
   wire              w312_tready;
   wire              w321_tready;
   wire              w322_tready;
-  assign            sC3_tready = w311_tready | w312_tready | w321_tready | w322_tready;
+  wire              w331_tready;
+  wire              w332_tready;
+  wire              w341_tready;
+  wire              w342_tready;
+  assign            sC3_tready = w311_tready | w312_tready | w321_tready | w322_tready | w331_tready | w332_tready | w341_tready | w342_tready;
 
   wire              w411_tready;
   wire              w412_tready;
   wire              w421_tready;
   wire              w422_tready;
-  assign            sC4_tready = w411_tready | w412_tready | w421_tready | w422_tready;
+  wire              w431_tready;
+  wire              w432_tready;
+  wire              w441_tready;
+  wire              w442_tready;
+  assign            sC4_tready = w411_tready | w412_tready | w421_tready | w422_tready | w431_tready | w432_tready | w441_tready | w442_tready;
 
   jit_mux #(NUM_ACCs) u_acc1_mA_mux(
     .s1_tready  (w111_tready),
@@ -594,49 +610,145 @@ generate if (NUM_ACCs == 8) begin
   wire              w112_tready;
   wire              w121_tready;
   wire              w122_tready;
-  assign            sC1_tready = w111_tready | w112_tready | w121_tready | w122_tready;
+  wire              w131_tready;
+  wire              w132_tready;
+  wire              w141_tready;
+  wire              w142_tready;
+  wire              w151_tready;
+  wire              w152_tready;
+  wire              w161_tready;
+  wire              w162_tready;
+  wire              w171_tready;
+  wire              w172_tready;
+  wire              w181_tready;
+  wire              w182_tready;
+  assign            sC1_tready = w111_tready | w112_tready | w121_tready | w122_tready | w131_tready | w132_tready | w141_tready | w142_tready | w151_tready | w152_tready | w161_tready | w162_tready | w171_tready | w172_tready | w181_tready | w182_tready;
 
   wire              w211_tready;
   wire              w212_tready;
   wire              w221_tready;
   wire              w222_tready;
-  assign            sC2_tready = w211_tready | w212_tready | w221_tready | w222_tready;
+  wire              w231_tready;
+  wire              w232_tready;
+  wire              w241_tready;
+  wire              w242_tready;
+  wire              w251_tready;
+  wire              w252_tready;
+  wire              w261_tready;
+  wire              w262_tready;
+  wire              w271_tready;
+  wire              w272_tready;
+  wire              w281_tready;
+  wire              w282_tready;
+  assign            sC2_tready = w211_tready | w212_tready | w221_tready | w222_tready | w231_tready | w232_tready | w241_tready | w242_tready | w251_tready | w252_tready | w261_tready | w262_tready | w271_tready | w272_tready | w281_tready | w282_tready;
 
   wire              w311_tready;
   wire              w312_tready;
   wire              w321_tready;
   wire              w322_tready;
-  assign            sC3_tready = w311_tready | w312_tready | w321_tready | w322_tready;
+  wire              w331_tready;
+  wire              w332_tready;
+  wire              w341_tready;
+  wire              w342_tready;
+  wire              w351_tready;
+  wire              w352_tready;
+  wire              w361_tready;
+  wire              w362_tready;
+  wire              w371_tready;
+  wire              w372_tready;
+  wire              w381_tready;
+  wire              w382_tready;
+  assign            sC3_tready = w311_tready | w312_tready | w321_tready | w322_tready | w331_tready | w332_tready | w341_tready | w342_tready | w351_tready | w352_tready | w361_tready | w362_tready | w371_tready | w372_tready | w381_tready | w382_tready;
 
   wire              w411_tready;
   wire              w412_tready;
   wire              w421_tready;
   wire              w422_tready;
-  assign            sC4_tready = w411_tready | w412_tready | w421_tready | w422_tready;
+  wire              w431_tready;
+  wire              w432_tready;
+  wire              w441_tready;
+  wire              w442_tready;
+  wire              w451_tready;
+  wire              w452_tready;
+  wire              w461_tready;
+  wire              w462_tready;
+  wire              w471_tready;
+  wire              w472_tready;
+  wire              w481_tready;
+  wire              w482_tready;
+  assign            sC4_tready = w411_tready | w412_tready | w421_tready | w422_tready | w431_tready | w432_tready | w441_tready | w442_tready | w451_tready | w452_tready | w461_tready | w462_tready | w471_tready | w472_tready | w481_tready | w482_tready;
 
   wire              w511_tready;
   wire              w512_tready;
   wire              w521_tready;
   wire              w522_tready;
-  assign            sC5_tready = w511_tready | w512_tready | w521_tready | w522_tready;
+  wire              w531_tready;
+  wire              w532_tready;
+  wire              w541_tready;
+  wire              w542_tready;
+  wire              w551_tready;
+  wire              w552_tready;
+  wire              w561_tready;
+  wire              w562_tready;
+  wire              w571_tready;
+  wire              w572_tready;
+  wire              w581_tready;
+  wire              w582_tready;
+  assign            sC5_tready = w511_tready | w512_tready | w521_tready | w522_tready | w531_tready | w532_tready | w541_tready | w542_tready | w551_tready | w552_tready | w561_tready | w562_tready | w571_tready | w572_tready | w581_tready | w582_tready;
 
   wire              w611_tready;
   wire              w612_tready;
   wire              w621_tready;
   wire              w622_tready;
-  assign            sC6_tready = w611_tready | w612_tready | w621_tready | w622_tready;
+  wire              w631_tready;
+  wire              w632_tready;
+  wire              w641_tready;
+  wire              w642_tready;
+  wire              w651_tready;
+  wire              w652_tready;
+  wire              w661_tready;
+  wire              w662_tready;
+  wire              w671_tready;
+  wire              w672_tready;
+  wire              w681_tready;
+  wire              w682_tready;
+  assign            sC6_tready = w611_tready | w612_tready | w621_tready | w622_tready | w631_tready | w632_tready | w641_tready | w642_tready | w651_tready | w652_tready | w661_tready | w662_tready | w671_tready | w672_tready | w681_tready | w682_tready;
 
   wire              w711_tready;
   wire              w712_tready;
   wire              w721_tready;
   wire              w722_tready;
-  assign            sC7_tready = w711_tready | w712_tready | w721_tready | w722_tready;
+  wire              w731_tready;
+  wire              w732_tready;
+  wire              w741_tready;
+  wire              w742_tready;
+  wire              w751_tready;
+  wire              w752_tready;
+  wire              w761_tready;
+  wire              w762_tready;
+  wire              w771_tready;
+  wire              w772_tready;
+  wire              w781_tready;
+  wire              w782_tready;
+  assign            sC7_tready = w711_tready | w712_tready | w721_tready | w722_tready | w731_tready | w732_tready | w741_tready | w742_tready | w751_tready | w752_tready | w761_tready | w762_tready | w771_tready | w772_tready | w781_tready | w782_tready;
 
   wire              w811_tready;
   wire              w812_tready;
   wire              w821_tready;
   wire              w822_tready;
-  assign            sC8_tready = w811_tready | w812_tready | w821_tready | w822_tready;
+  wire              w831_tready;
+  wire              w832_tready;
+  wire              w841_tready;
+  wire              w842_tready;
+  wire              w851_tready;
+  wire              w852_tready;
+  wire              w861_tready;
+  wire              w862_tready;
+  wire              w871_tready;
+  wire              w872_tready;
+  wire              w881_tready;
+  wire              w882_tready;
+  assign            sC8_tready = w811_tready | w812_tready | w821_tready | w822_tready | w831_tready | w832_tready | w841_tready | w842_tready | w851_tready | w852_tready | w861_tready | w862_tready | w871_tready | w872_tready | w881_tready | w882_tready;
 
   jit_mux #(NUM_ACCs) u_acc1_mA_mux(
     .s1_tready  (w111_tready),
@@ -696,9 +808,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w812_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB1_tready ),
+    .mO_tvalid  (mB1_tvalid ),
+    .mO_tdata   (mB1_tdata  ),
     .CONF       (CONF1_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -729,9 +841,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w821_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA2_tready ),
+    .mO_tvalid  (mA2_tvalid ),
+    .mO_tdata   (mA2_tdata  ),
     .CONF       (CONF2_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -762,9 +874,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w822_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB2_tready ),
+    .mO_tvalid  (mB2_tvalid ),
+    .mO_tdata   (mB2_tdata  ),
     .CONF       (CONF2_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -795,9 +907,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w831_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA3_tready ),
+    .mO_tvalid  (mA3_tvalid ),
+    .mO_tdata   (mA3_tdata  ),
     .CONF       (CONF3_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -828,9 +940,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w832_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB3_tready ),
+    .mO_tvalid  (mB3_tvalid ),
+    .mO_tdata   (mB3_tdata  ),
     .CONF       (CONF3_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -861,9 +973,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w841_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA4_tready ),
+    .mO_tvalid  (mA4_tvalid ),
+    .mO_tdata   (mA4_tdata  ),
     .CONF       (CONF4_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -894,9 +1006,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w842_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB4_tready ),
+    .mO_tvalid  (mB4_tvalid ),
+    .mO_tdata   (mB4_tdata  ),
     .CONF       (CONF4_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -927,9 +1039,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w851_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA5_tready ),
+    .mO_tvalid  (mA5_tvalid ),
+    .mO_tdata   (mA5_tdata  ),
     .CONF       (CONF5_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -960,9 +1072,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w852_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB5_tready ),
+    .mO_tvalid  (mB5_tvalid ),
+    .mO_tdata   (mB5_tdata  ),
     .CONF       (CONF5_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -993,9 +1105,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w861_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA6_tready ),
+    .mO_tvalid  (mA6_tvalid ),
+    .mO_tdata   (mA6_tdata  ),
     .CONF       (CONF6_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -1026,9 +1138,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w862_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB6_tready ),
+    .mO_tvalid  (mB6_tvalid ),
+    .mO_tdata   (mB6_tdata  ),
     .CONF       (CONF6_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -1059,9 +1171,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w871_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA7_tready ),
+    .mO_tvalid  (mA7_tvalid ),
+    .mO_tdata   (mA7_tdata  ),
     .CONF       (CONF7_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -1092,9 +1204,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w872_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB7_tready ),
+    .mO_tvalid  (mB7_tvalid ),
+    .mO_tdata   (mB7_tdata  ),
     .CONF       (CONF7_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -1125,9 +1237,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w881_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mA8_tready ),
+    .mO_tvalid  (mA8_tvalid ),
+    .mO_tdata   (mA8_tdata  ),
     .CONF       (CONF8_A    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )
@@ -1158,9 +1270,9 @@ generate if (NUM_ACCs == 8) begin
     .s8_tready  (w882_tready),
     .s8_tvalid  (sC8_tvalid ),
     .s8_tdata   (sC8_tdata  ),
-    .mO_tready  (mA1_tready ),
-    .mO_tvalid  (mA1_tvalid ),
-    .mO_tdata   (mA1_tdata  ),
+    .mO_tready  (mB8_tready ),
+    .mO_tvalid  (mB8_tvalid ),
+    .mO_tdata   (mB8_tdata  ),
     .CONF       (CONF8_B    ),
     .ACLK       (ACLK       ),
     .ARESETN    (ARESETN    )

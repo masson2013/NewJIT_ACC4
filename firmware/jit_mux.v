@@ -539,8 +539,8 @@ generate if (NUM_PORTs == 6) begin
         end
 
         4'd6: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s6_tvalid ;
+          mO_tdata  = s6_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;
@@ -669,8 +669,8 @@ generate if (NUM_PORTs == 7) begin
         end
 
         4'd6: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s6_tvalid ;
+          mO_tdata  = s6_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;
@@ -682,8 +682,8 @@ generate if (NUM_PORTs == 7) begin
         end
 
         4'd7: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s7_tvalid ;
+          mO_tdata  = s7_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;
@@ -812,8 +812,8 @@ generate if (NUM_PORTs == 8) begin
         end
 
         4'd6: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s6_tvalid ;
+          mO_tdata  = s6_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;
@@ -825,8 +825,8 @@ generate if (NUM_PORTs == 8) begin
         end
 
         4'd7: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s7_tvalid ;
+          mO_tdata  = s7_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;
@@ -838,8 +838,8 @@ generate if (NUM_PORTs == 8) begin
         end
 
         4'd8: begin
-          mO_tvalid = s5_tvalid ;
-          mO_tdata  = s5_tdata  ;
+          mO_tvalid = s8_tvalid ;
+          mO_tdata  = s8_tdata  ;
           s1_tready = 1'b0      ;
           s2_tready = 1'b0      ;
           s3_tready = 1'b0      ;

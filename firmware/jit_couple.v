@@ -32,18 +32,25 @@ module jit_couple
   output  wire             mAccOutB_tvalid ,
   output  wire  [31 : 0]   mAccOutB_tdata  ,
 
-  input   wire  [ 3 : 0]   CONF            ,
+  input   wire  [ 5 : 0]   CONF            ,
 
   input   wire             ACLK            ,
   input   wire             ARESETN
 );
 
-  assign mOutC_tvalid    =  sAccInC_tvalid                ;
-  assign mOutC_tdata     =  sAccInC_tdata                 ;
-  assign mcOutC_tvalid   =  sAccInC_tvalid                ;
-  assign mcOutC_tdata    =  sAccInC_tdata                 ;
-  assign sAccInC_tready  =  mOutC_tready | mcOutC_tready  ;
+  // assign mOutC_tvalid    =  (CONF[5:4] == 2'b00 ? sAccInC_tvalid : 1'b0) ;
+  // assign mOutC_tdata     =  (CONF[5:4] == 2'b00 ? sAccInC_tdata  :32'b0) ;
 
+  // assign mcOutC_tvalid   =  (CONF[5:4] == 2'b00 ?  1'b0 : sAccInC_tvalid);
+  // assign mcOutC_tdata    =  (CONF[5:4] == 2'b00 ? 32'b0 : sAccInC_tdata );
+
+  assign mOutC_tvalid    =  (CONF[5:4] == 2'b11 ?  1'b0 : sAccInC_tvalid );
+  assign mOutC_tdata     =  (CONF[5:4] == 2'b11 ? 32'b0 : sAccInC_tdata  );
+
+  assign mcOutC_tvalid   =  (CONF[5:4] == 2'b11 ? sAccInC_tvalid :  1'b0 );
+  assign mcOutC_tdata    =  (CONF[5:4] == 2'b11 ? sAccInC_tdata  : 32'b0 );
+
+  assign sAccInC_tready  =  mOutC_tready | mcOutC_tready                 ;
 
   jit_mux #(2) u_AccOutA_mux(
     .s1_tready  (sInA_tready     ),
