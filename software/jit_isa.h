@@ -1,7 +1,8 @@
 #include "jit_bit.h"
 
-#define CARD            2
+#define CARD            1
 #define NUM_ACCs        8
+#define PR
 
 #define MAX_NUM_MODULES 50
 #define ROW             NUM_ACCs
@@ -24,14 +25,15 @@
 #define VSUBREDUCE      6
 #define ACCMM           7
 #define ACCMMM          8
-#define SQLEQU          9
-#define SQLSELECT       10
+#define MERGE           9
+#define INSERTION       10
 #define SQLAVG          11
 #define SQLLESS         12
 #define SQLLARGE        13
 #define A2PB2           14
 #define VAPBB           15
 #define VAAPB           16
+#define BB              17
 
 #define SIN1            0
 #define SIN2            1
@@ -91,6 +93,10 @@ typedef struct{
   int        tie_in1;
   int        tie_in2;
   int        tie_out;
+
+  int        size_in1;
+  int        size_in2;
+  int        size_out;
 
   int        cur_cmd;    // Current CMD
 }vam_node_t;
@@ -188,7 +194,7 @@ void * Stream_Threads_Call(void *pk)
   printf("\r\n");
 #endif
   vstart_pk_t *p = (vstart_pk_t *)pk;
-  int err;
+  int err, i;
   char      ibuf[1024];
   int       type  = p->type;
   int       card  = p->card;
@@ -209,10 +215,15 @@ void * Stream_Threads_Call(void *pk)
     }
   } else if (type == RS) {
     #ifdef VERBOSE_THREAD
-      printf("[DEBUG->RS_TCALL] Reading %i Bytes to 0x%08x\n", items * 4, stream);
+      // printf("[DEBUG->RS_TCALL] Reading %i Bytes from 0x%08x\n", i=p->VM->pico[card]->GetBytesAvailable(stream, true), stream);
+      printf("[DEBUG->RS_TCALL] Reading %i Bytes from 0x%08x\n", items * 4, stream);
+      // if (i < 0){
+      //     fprintf(stderr, "GetBytesAvailable error: %s\n", PicoErrors_FullError(i, ibuf, sizeof(ibuf)));
+      //     exit(1);
+      // }
     #endif
-
     err = p->VM->pico[card]->ReadStream(stream, buf,  items * 4);
+    // err = p->VM->pico[card]->ReadStream(stream, buf,  i);
     if (err < 0) {
       fprintf(stderr, "ReadingStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
       return (void *) -1;
@@ -401,133 +412,115 @@ void VAM_BITSTREAM_TABLE_INIT(vam_Bitstream_table_t *BITSTREAM_TABLE)
   #ifdef VERBOSE
     printf("[DEBUG->VAM_BITSTREAM_TABLE_INIT] INIT\r\n");
   #endif
-     BITSTREAM_TABLE->item[VADD].BitAddr[0] = (uint32_t*)acc_vadd2_PR1_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[1] = (uint32_t*)acc_vadd2_PR2_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[2] = (uint32_t*)acc_vadd2_PR3_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[3] = (uint32_t*)acc_vadd2_PR4_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[4] = (uint32_t*)acc_vadd2_PR5_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[5] = (uint32_t*)acc_vadd2_PR6_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[6] = (uint32_t*)acc_vadd2_PR7_bit;
-     BITSTREAM_TABLE->item[VADD].BitAddr[7] = (uint32_t*)acc_vadd2_PR8_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[0]          = (uint32_t*)jit_blackbox_PR1_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[1]          = (uint32_t*)jit_blackbox_PR2_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[2]          = (uint32_t*)jit_blackbox_PR3_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[3]          = (uint32_t*)jit_blackbox_PR4_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[4]          = (uint32_t*)jit_blackbox_PR5_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[5]          = (uint32_t*)jit_blackbox_PR6_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[6]          = (uint32_t*)jit_blackbox_PR7_bit;
+     // BITSTREAM_TABLE->item[BB].BitAddr[7]          = (uint32_t*)jit_blackbox_PR8_bit;
 
-     BITSTREAM_TABLE->item[VADD].BitSize[0] = (uint32_t) acc_vadd2_PR1_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[1] = (uint32_t) acc_vadd2_PR2_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[2] = (uint32_t) acc_vadd2_PR3_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[3] = (uint32_t) acc_vadd2_PR4_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[4] = (uint32_t) acc_vadd2_PR5_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[5] = (uint32_t) acc_vadd2_PR6_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[6] = (uint32_t) acc_vadd2_PR7_bit_len;
-     BITSTREAM_TABLE->item[VADD].BitSize[7] = (uint32_t) acc_vadd2_PR8_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[0]          = (uint32_t) jit_blackbox_PR1_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[1]          = (uint32_t) jit_blackbox_PR2_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[2]          = (uint32_t) jit_blackbox_PR3_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[3]          = (uint32_t) jit_blackbox_PR4_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[4]          = (uint32_t) jit_blackbox_PR5_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[5]          = (uint32_t) jit_blackbox_PR6_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[6]          = (uint32_t) jit_blackbox_PR7_bit_len;
+     // BITSTREAM_TABLE->item[BB].BitSize[7]          = (uint32_t) jit_blackbox_PR8_bit_len;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+     BITSTREAM_TABLE->item[MERGE].BitAddr[0]       = (uint32_t*)MergeUnit_PR1_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[1]       = (uint32_t*)MergeUnit_PR2_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[2]       = (uint32_t*)MergeUnit_PR3_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[3]       = (uint32_t*)MergeUnit_PR4_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[4]       = (uint32_t*)MergeUnit_PR5_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[5]       = (uint32_t*)MergeUnit_PR6_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[6]       = (uint32_t*)MergeUnit_PR7_bit;
+     BITSTREAM_TABLE->item[MERGE].BitAddr[7]       = (uint32_t*)MergeUnit_PR8_bit;
+
+     BITSTREAM_TABLE->item[MERGE].BitSize[0]       = (uint32_t) MergeUnit_PR1_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[1]       = (uint32_t) MergeUnit_PR2_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[2]       = (uint32_t) MergeUnit_PR3_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[3]       = (uint32_t) MergeUnit_PR4_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[4]       = (uint32_t) MergeUnit_PR5_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[5]       = (uint32_t) MergeUnit_PR6_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[6]       = (uint32_t) MergeUnit_PR7_bit_len;
+     BITSTREAM_TABLE->item[MERGE].BitSize[7]       = (uint32_t) MergeUnit_PR8_bit_len;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[0]   = (uint32_t*)InsertionUnit_PR1_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[1]   = (uint32_t*)InsertionUnit_PR2_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[2]   = (uint32_t*)InsertionUnit_PR3_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[3]   = (uint32_t*)InsertionUnit_PR4_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[4]   = (uint32_t*)InsertionUnit_PR5_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[5]   = (uint32_t*)InsertionUnit_PR6_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[6]   = (uint32_t*)InsertionUnit_PR7_bit;
+     BITSTREAM_TABLE->item[INSERTION].BitAddr[7]   = (uint32_t*)InsertionUnit_PR8_bit;
+
+     BITSTREAM_TABLE->item[INSERTION].BitSize[0]   = (uint32_t) InsertionUnit_PR1_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[1]   = (uint32_t) InsertionUnit_PR2_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[2]   = (uint32_t) InsertionUnit_PR3_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[3]   = (uint32_t) InsertionUnit_PR4_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[4]   = (uint32_t) InsertionUnit_PR5_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[5]   = (uint32_t) InsertionUnit_PR6_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[6]   = (uint32_t) InsertionUnit_PR7_bit_len;
+     BITSTREAM_TABLE->item[INSERTION].BitSize[7]   = (uint32_t) InsertionUnit_PR8_bit_len;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+     BITSTREAM_TABLE->item[VADD].BitAddr[0]        = (uint32_t*)acc_vadd_PR1_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[1]        = (uint32_t*)acc_vadd_PR2_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[2]        = (uint32_t*)acc_vadd_PR3_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[3]        = (uint32_t*)acc_vadd_PR4_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[4]        = (uint32_t*)acc_vadd_PR5_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[5]        = (uint32_t*)acc_vadd_PR6_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[6]        = (uint32_t*)acc_vadd_PR7_bit;
+     BITSTREAM_TABLE->item[VADD].BitAddr[7]        = (uint32_t*)acc_vadd_PR8_bit;
+
+     BITSTREAM_TABLE->item[VADD].BitSize[0]        = (uint32_t) acc_vadd_PR1_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[1]        = (uint32_t) acc_vadd_PR2_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[2]        = (uint32_t) acc_vadd_PR3_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[3]        = (uint32_t) acc_vadd_PR4_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[4]        = (uint32_t) acc_vadd_PR5_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[5]        = (uint32_t) acc_vadd_PR6_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[6]        = (uint32_t) acc_vadd_PR7_bit_len;
+     BITSTREAM_TABLE->item[VADD].BitSize[7]        = (uint32_t) acc_vadd_PR8_bit_len;
+  // //////////////////////////////////////////////////////////////////////////////
+     BITSTREAM_TABLE->item[VMUL].BitAddr[0]        = (uint32_t*)acc_vmul_PR1_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[1]        = (uint32_t*)acc_vmul_PR2_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[2]        = (uint32_t*)acc_vmul_PR3_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[3]        = (uint32_t*)acc_vmul_PR4_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[4]        = (uint32_t*)acc_vmul_PR5_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[5]        = (uint32_t*)acc_vmul_PR6_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[6]        = (uint32_t*)acc_vmul_PR7_bit;
+     BITSTREAM_TABLE->item[VMUL].BitAddr[7]        = (uint32_t*)acc_vmul_PR8_bit;
+
+     BITSTREAM_TABLE->item[VMUL].BitSize[0]        = (uint32_t) acc_vmul_PR1_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[1]        = (uint32_t) acc_vmul_PR2_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[2]        = (uint32_t) acc_vmul_PR3_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[3]        = (uint32_t) acc_vmul_PR4_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[4]        = (uint32_t) acc_vmul_PR5_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[5]        = (uint32_t) acc_vmul_PR6_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[6]        = (uint32_t) acc_vmul_PR7_bit_len;
+     BITSTREAM_TABLE->item[VMUL].BitSize[7]        = (uint32_t) acc_vmul_PR8_bit_len;
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[0] = (uint32_t*)acc_vredu_PR1_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[1] = (uint32_t*)acc_vredu_PR2_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[2] = (uint32_t*)acc_vredu_PR3_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[3] = (uint32_t*)acc_vredu_PR4_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[4] = (uint32_t*)acc_vredu_PR5_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[5] = (uint32_t*)acc_vredu_PR6_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[6] = (uint32_t*)acc_vredu_PR7_bit;
+  // BITSTREAM_TABLE->item[VREDUCE].BitAddr[7] = (uint32_t*)acc_vredu_PR8_bit;
+
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[0] = (uint32_t) acc_vredu_PR1_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[1] = (uint32_t) acc_vredu_PR2_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[2] = (uint32_t) acc_vredu_PR3_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[3] = (uint32_t) acc_vredu_PR4_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[4] = (uint32_t) acc_vredu_PR5_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[5] = (uint32_t) acc_vredu_PR6_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[6] = (uint32_t) acc_vredu_PR7_bit_len;
+  // BITSTREAM_TABLE->item[VREDUCE].BitSize[7] = (uint32_t) acc_vredu_PR8_bit_len;
   //////////////////////////////////////////////////////////////////////////////
-     BITSTREAM_TABLE->item[VMUL].BitAddr[0] = (uint32_t*)acc_vmul2_PR1_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[1] = (uint32_t*)acc_vmul2_PR2_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[2] = (uint32_t*)acc_vmul2_PR3_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[3] = (uint32_t*)acc_vmul2_PR4_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[4] = (uint32_t*)acc_vmul2_PR5_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[5] = (uint32_t*)acc_vmul2_PR6_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[6] = (uint32_t*)acc_vmul2_PR7_bit;
-     BITSTREAM_TABLE->item[VMUL].BitAddr[7] = (uint32_t*)acc_vmul2_PR8_bit;
 
-     BITSTREAM_TABLE->item[VMUL].BitSize[0] = (uint32_t) acc_vmul2_PR1_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[1] = (uint32_t) acc_vmul2_PR2_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[2] = (uint32_t) acc_vmul2_PR3_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[3] = (uint32_t) acc_vmul2_PR4_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[4] = (uint32_t) acc_vmul2_PR5_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[5] = (uint32_t) acc_vmul2_PR6_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[6] = (uint32_t) acc_vmul2_PR7_bit_len;
-     BITSTREAM_TABLE->item[VMUL].BitSize[7] = (uint32_t) acc_vmul2_PR8_bit_len;
-  //////////////////////////////////////////////////////////////////////////////
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[0] = (uint32_t*)acc_vredu_PR1_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[1] = (uint32_t*)acc_vredu_PR2_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[2] = (uint32_t*)acc_vredu_PR3_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[3] = (uint32_t*)acc_vredu_PR4_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[4] = (uint32_t*)acc_vredu_PR5_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[5] = (uint32_t*)acc_vredu_PR6_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[6] = (uint32_t*)acc_vredu_PR7_bit;
-  BITSTREAM_TABLE->item[VREDUCE].BitAddr[7] = (uint32_t*)acc_vredu_PR8_bit;
-
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[0] = (uint32_t) acc_vredu_PR1_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[1] = (uint32_t) acc_vredu_PR2_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[2] = (uint32_t) acc_vredu_PR3_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[3] = (uint32_t) acc_vredu_PR4_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[4] = (uint32_t) acc_vredu_PR5_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[5] = (uint32_t) acc_vredu_PR6_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[6] = (uint32_t) acc_vredu_PR7_bit_len;
-  BITSTREAM_TABLE->item[VREDUCE].BitSize[7] = (uint32_t) acc_vredu_PR8_bit_len;
-  //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[VSUB].BitAddr[0] = (uint32_t*)acc_vsub_PR0_bit;
-  // BITSTREAM_TABLE->item[VSUB].BitAddr[1] = (uint32_t*)acc_vsub_PR1_bit;
-  // BITSTREAM_TABLE->item[VSUB].BitAddr[2] = (uint32_t*)acc_vsub_PR2_bit;
-  // BITSTREAM_TABLE->item[VSUB].BitAddr[3] = (uint32_t*)acc_vsub_PR3_bit;
-  // BITSTREAM_TABLE->item[VSUB].BitAddr[4] = (uint32_t*)acc_vsub_PR4_bit;
-
-  // BITSTREAM_TABLE->item[VSUB].BitSize[0] = (uint32_t) acc_vsub_PR0_bit_len;
-  // BITSTREAM_TABLE->item[VSUB].BitSize[1] = (uint32_t) acc_vsub_PR1_bit_len;
-  // BITSTREAM_TABLE->item[VSUB].BitSize[2] = (uint32_t) acc_vsub_PR2_bit_len;
-  // BITSTREAM_TABLE->item[VSUB].BitSize[3] = (uint32_t) acc_vsub_PR3_bit_len;
-  // BITSTREAM_TABLE->item[VSUB].BitSize[4] = (uint32_t) acc_vsub_PR4_bit_len;
-
-  // //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[A2PB2].BitAddr[0] = (uint32_t*)acc_a2pb2_PR0_bit;
-  // BITSTREAM_TABLE->item[A2PB2].BitAddr[1] = (uint32_t*)acc_a2pb2_PR1_bit;
-  // BITSTREAM_TABLE->item[A2PB2].BitAddr[2] = (uint32_t*)acc_a2pb2_PR2_bit;
-  // BITSTREAM_TABLE->item[A2PB2].BitAddr[3] = (uint32_t*)acc_a2pb2_PR3_bit;
-  // BITSTREAM_TABLE->item[A2PB2].BitAddr[4] = (uint32_t*)acc_a2pb2_PR4_bit;
-
-  // BITSTREAM_TABLE->item[A2PB2].BitSize[0] = (uint32_t) acc_a2pb2_PR0_bit_len;
-  // BITSTREAM_TABLE->item[A2PB2].BitSize[1] = (uint32_t) acc_a2pb2_PR1_bit_len;
-  // BITSTREAM_TABLE->item[A2PB2].BitSize[2] = (uint32_t) acc_a2pb2_PR2_bit_len;
-  // BITSTREAM_TABLE->item[A2PB2].BitSize[3] = (uint32_t) acc_a2pb2_PR3_bit_len;
-  // BITSTREAM_TABLE->item[A2PB2].BitSize[4] = (uint32_t) acc_a2pb2_PR4_bit_len;
-  // //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[VAPBB].BitAddr[0] = (uint32_t*)acc_vapbb_PR0_bit;
-  // BITSTREAM_TABLE->item[VAPBB].BitAddr[1] = (uint32_t*)acc_vapbb_PR1_bit;
-  // BITSTREAM_TABLE->item[VAPBB].BitAddr[2] = (uint32_t*)acc_vapbb_PR2_bit;
-  // BITSTREAM_TABLE->item[VAPBB].BitAddr[3] = (uint32_t*)acc_vapbb_PR3_bit;
-  // BITSTREAM_TABLE->item[VAPBB].BitAddr[4] = (uint32_t*)acc_vapbb_PR4_bit;
-
-  // BITSTREAM_TABLE->item[VAPBB].BitSize[0] = (uint32_t) acc_vapbb_PR0_bit_len;
-  // BITSTREAM_TABLE->item[VAPBB].BitSize[1] = (uint32_t) acc_vapbb_PR1_bit_len;
-  // BITSTREAM_TABLE->item[VAPBB].BitSize[2] = (uint32_t) acc_vapbb_PR2_bit_len;
-  // BITSTREAM_TABLE->item[VAPBB].BitSize[3] = (uint32_t) acc_vapbb_PR3_bit_len;
-  // BITSTREAM_TABLE->item[VAPBB].BitSize[4] = (uint32_t) acc_vapbb_PR4_bit_len;
-  // //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[VAAPB].BitAddr[0] = (uint32_t*)acc_vaapb_PR0_bit;
-  // BITSTREAM_TABLE->item[VAAPB].BitAddr[1] = (uint32_t*)acc_vaapb_PR1_bit;
-  // BITSTREAM_TABLE->item[VAAPB].BitAddr[2] = (uint32_t*)acc_vaapb_PR2_bit;
-  // BITSTREAM_TABLE->item[VAAPB].BitAddr[3] = (uint32_t*)acc_vaapb_PR3_bit;
-  // BITSTREAM_TABLE->item[VAAPB].BitAddr[4] = (uint32_t*)acc_vaapb_PR4_bit;
-
-  // BITSTREAM_TABLE->item[VAAPB].BitSize[0] = (uint32_t) acc_vaapb_PR0_bit_len;
-  // BITSTREAM_TABLE->item[VAAPB].BitSize[1] = (uint32_t) acc_vaapb_PR1_bit_len;
-  // BITSTREAM_TABLE->item[VAAPB].BitSize[2] = (uint32_t) acc_vaapb_PR2_bit_len;
-  // BITSTREAM_TABLE->item[VAAPB].BitSize[3] = (uint32_t) acc_vaapb_PR3_bit_len;
-  // BITSTREAM_TABLE->item[VAAPB].BitSize[4] = (uint32_t) acc_vaapb_PR4_bit_len;
-
-  // //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[0] = (uint32_t*)acc_sql_select_PR0_bit;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[1] = (uint32_t*)acc_sql_select_PR1_bit;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[2] = (uint32_t*)acc_sql_select_PR2_bit;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[3] = (uint32_t*)acc_sql_select_PR3_bit;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[4] = (uint32_t*)acc_sql_select_PR4_bit;
-
-  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[0] = (uint32_t) acc_sql_select_PR0_bit_len;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[1] = (uint32_t) acc_sql_select_PR1_bit_len;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[2] = (uint32_t) acc_sql_select_PR2_bit_len;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[3] = (uint32_t) acc_sql_select_PR3_bit_len;
-  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[4] = (uint32_t) acc_sql_select_PR4_bit_len;
-  // //////////////////////////////////////////////////////////////////////////////
-  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[0] = (uint32_t*)acc_f_avg_PR0_bit;
-  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[1] = (uint32_t*)acc_f_avg_PR1_bit;
-  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[2] = (uint32_t*)acc_f_avg_PR2_bit;
-  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[3] = (uint32_t*)acc_f_avg_PR3_bit;
-  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[4] = (uint32_t*)acc_f_avg_PR4_bit;
-
-  // BITSTREAM_TABLE->item[SQLAVG].BitSize[0] = (uint32_t) acc_f_avg_PR0_bit_len;
-  // BITSTREAM_TABLE->item[SQLAVG].BitSize[1] = (uint32_t) acc_f_avg_PR1_bit_len;
-  // BITSTREAM_TABLE->item[SQLAVG].BitSize[2] = (uint32_t) acc_f_avg_PR2_bit_len;
-  // BITSTREAM_TABLE->item[SQLAVG].BitSize[3] = (uint32_t) acc_f_avg_PR3_bit_len;
-  // BITSTREAM_TABLE->item[SQLAVG].BitSize[4] = (uint32_t) acc_f_avg_PR4_bit_len;
   #ifdef VERBOSE
     printf("[DEBUG->VAM_BITSTREAM_TABLE_INIT] DONE\r\n");
   #endif
@@ -874,11 +867,13 @@ void * vlpr_Threads_Call(void *pk)
       printf("[DEBUG->vlpr_TCALL] Writing %i Bytes to PR%d\n", VM->BITSTREAM_TABLE->item[PR_NAME].BitSize[node] * 4, node);
     #endif
 
+    #ifdef PR
     err = VM->pico[card]->WriteStream(icap_stream, VM->BITSTREAM_TABLE->item[PR_NAME].BitAddr[node], VM->BITSTREAM_TABLE->item[PR_NAME].BitSize[node] * 4); // Write bytes not words.
     if (err < 0) {
         fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
         return NULL;
     }
+    #endif
 
     usleep(500); // Need some delay for ICAP to finish the PR process. 500ms is more stable
 
@@ -943,7 +938,7 @@ void * vlpr_Threads_Call(void *pk)
 //  |  '--' /|  '--' /|  '--' /
 //  `------' `------' `------'
 //--------------------------------------------------------------------------------------------------
-int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size)
+int vtieio(vam_vm_t *VM, int nPR, int *in1, int size_in1, int *in2, int size_in2, int *out, int size_out)
 {
 #ifdef VERBOSE
   printf("\r\n");
@@ -953,16 +948,21 @@ int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size)
   char      ibuf[1024];
   int       err;
   int       cmd_stream;
-  int       card  = nPR >> 4;
-  int       node  = nPR & 0xF;
-  int       index = card * ROW + node;
+
+  // int       card  = nPR >> 4;
+  // int       node  = nPR & 0xF;
+  // int       index = card * ROW + node;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
 
 #ifdef VERBOSE
-  printf("[DEBUG->vtieio] Buf_Buf_Buf, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, card, node, index);
+  printf("[DEBUG->vtieio] Buf_Buf_Buf, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
   // printf("[DEBUG->vtieio] Opening CMD Stream\r\n");
 #endif
 
-  VM->VAM_TABLE->at(index).node_type = Buf_Buf_Buf;
+  VM->VAM_TABLE->at(nPR_index).node_type = Buf_Buf_Buf;
 
   // request Mutex for CMD Stream
   #ifdef VERBOSE
@@ -973,30 +973,34 @@ int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size)
   #ifdef VERBOSE
     printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
   #endif
-  cmd_stream = VM->pico[card]->CreateStream(50);
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
 
-  cmd[0] = 0xC0100000 | (node + 1 << 24) | (size >> 16)        ;
-  cmd[1] = 0xC0200000 | (node + 1 << 24) | (size & 0x0000FFFF) ;
-  cmd[2] = 0xC0300001 | (node + 1 << 24)                       ;
-  cmd[3] = 0xB0000000 | (node + 1 << 24)                       ;
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)        ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF) ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                       ;
+  cmd[3] = 0xB0000000 | (nPR_node + 1 << 24)                       ;
 
-  VM->VAM_TABLE->at(index).cur_cmd = cmd[3];
-  VM->VAM_TABLE->at(index).in1     = in1;
-  VM->VAM_TABLE->at(index).in2     = in2;
-  VM->VAM_TABLE->at(index).out     = out;
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).in1     = in1;
+  VM->VAM_TABLE->at(nPR_index).in2     = in2;
+  VM->VAM_TABLE->at(nPR_index).out     = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
 
   #ifdef VERBOSE
-    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, card, node, index);
-    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", size, size >> 16, size & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
     printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
   #endif
-  err = VM->pico[card]->WriteStream(cmd_stream, cmd, 16);
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
   if (err < 0) {
     fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
     return -1;
   }
 
-  VM->pico[card]->CloseStream(cmd_stream);
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
   // Releast Mutex on CMD Stream
   #ifdef VERBOSE
     printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
@@ -1005,7 +1009,619 @@ int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size)
 
   return 0;
 }
+//--------------------------------------------------------------------------------------------------
+//  ,-----.  ,-----.  ,------.
+//  |  |) /_ |  |) /_ |  .--. '
+//  |  .-.  \|  .-.  \|  '--'.'
+//  |  '--' /|  '--' /|  |\  \
+//  `------' `------' `--' '--'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int *in1, int size_in1, int *in2, int size_in2, int out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
 
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+  // int       card  = nPR >> 4;
+  // int       node  = nPR & 0xF;
+  // int       index = card * ROW + node;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Buf_Buf_Reg, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  // printf("[DEBUG->vtieio] Opening CMD Stream\r\n");
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Buf_Buf_Reg;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)        ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF) ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                       ;
+  cmd[3] = 0xB0000F00 | (nPR_node + 1 << 24)                       ; // F means the output from crossbar back to crossbar
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).in1     = in1;
+  VM->VAM_TABLE->at(nPR_index).in2     = in2;
+  VM->VAM_TABLE->at(nPR_index).tie_out = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,------. ,------. ,-----.
+//  |  .--. '|  .--. '|  |) /_
+//  |  '--'.'|  '--'.'|  .-.  \
+//  |  |\  \ |  |\  \ |  '--' /
+//  `--' '--'`--' '--'`------'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int in1, int size_in1, int in2, int size_in2, int *out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+  // int       card  = nPR >> 4;
+  // int       node  = nPR & 0xF;
+  // int       index = card * ROW + node;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  int       in1_card  = in1 >> 4;
+  int       in1_node  = in1 & 0xF;
+  int       in1_index = in1_card * ROW + in1_node;
+
+  int       in2_card  = in2 >> 4;
+  int       in2_node  = in2 & 0xF;
+  int       in2_index = in2_card * ROW + in2_node;
+
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Reg_Reg_Buf\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Reg_Reg_Buf;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+  // find first not 0 in size_in1, size_in2 and size_out
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000000 | (nPR_node + 1 << 24) | (in2_node + 1 << 4) | (in1_node + 1) ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).tie_in1 = in1;
+  VM->VAM_TABLE->at(nPR_index).tie_in2 = in2;
+  VM->VAM_TABLE->at(nPR_index).out     = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,------. ,------. ,------.
+//  |  .--. '|  .--. '|  .--. '
+//  |  '--'.'|  '--'.'|  '--'.'
+//  |  |\  \ |  |\  \ |  |\  \
+//  `--' '--'`--' '--'`--' '--'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int in1, int size_in1, int in2, int size_in2, int out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+  // int       card  = nPR >> 4;
+  // int       node  = nPR & 0xF;
+  // int       index = card * ROW + node;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  int       in1_card  = in1 >> 4;
+  int       in1_node  = in1 & 0xF;
+  int       in1_index = in1_card * ROW + in1_node;
+
+  int       in2_card  = in2 >> 4;
+  int       in2_node  = in2 & 0xF;
+  int       in2_index = in2_card * ROW + in2_node;
+
+  int       out_card  = out >> 4;
+  int       out_node  = out & 0xF;
+  int       out_index = out_card * ROW + out_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Reg_Reg_Buf\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  printf("[DEBUG->vtieio] in2:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+  printf("[DEBUG->vtieio] out:0x%08x, Card:%d, Node:%d, index:%d\r\n", out, out_card, out_node, out_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Reg_Reg_Reg;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000F00 | (nPR_node + 1 << 24) | (in2_node + 1 << 4) | (in1_node + 1) ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).tie_in1 = in1;
+  VM->VAM_TABLE->at(nPR_index).tie_in2 = in2;
+  VM->VAM_TABLE->at(nPR_index).tie_out = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,-----.  ,------. ,-----.
+//  |  |) /_ |  .--. '|  |) /_
+//  |  .-.  \|  '--'.'|  .-.  \
+//  |  '--' /|  |\  \ |  '--' /
+//  `------' `--' '--'`------'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int *in1, int size_in1, int in2, int size_in2, int *out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  // int       in1_card  = in1 >> 4;
+  // int       in1_node  = in1 & 0xF;
+  // int       in1_index = in1_card * ROW + in1_node;
+
+  int       in2_card  = in2 >> 4;
+  int       in2_node  = in2 & 0xF;
+  int       in2_index = in2_card * ROW + in2_node;
+
+  // int       out_card  = out >> 4;
+  // int       out_node  = out & 0xF;
+  // int       out_index = out_card * ROW + out_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Buf_Reg_Buf\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  // printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+  // printf("[DEBUG->vtieio] out:0x%08x, Card:%d, Node:%d, index:%d\r\n", out, out_card, out_node, out_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Buf_Reg_Buf;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000000 | (nPR_node + 1 << 24) | (in2_node + 1 << 4)          ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).in1     = in1;
+  VM->VAM_TABLE->at(nPR_index).tie_in2 = in2;
+  VM->VAM_TABLE->at(nPR_index).out     = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,------. ,-----.  ,-----.
+//  |  .--. '|  |) /_ |  |) /_
+//  |  '--'.'|  .-.  \|  .-.  \
+//  |  |\  \ |  '--' /|  '--' /
+//  `--' '--'`------' `------'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int in1, int size_in1, int *in2, int size_in2, int *out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  int       in1_card  = in1 >> 4;
+  int       in1_node  = in1 & 0xF;
+  int       in1_index = in1_card * ROW + in1_node;
+
+  // int       in2_card  = in2 >> 4;
+  // int       in2_node  = in2 & 0xF;
+  // int       in2_index = in2_card * ROW + in2_node;
+
+  // int       out_card  = out >> 4;
+  // int       out_node  = out & 0xF;
+  // int       out_index = out_card * ROW + out_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Reg_Buf_Buf\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  // printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+  // printf("[DEBUG->vtieio] out:0x%08x, Card:%d, Node:%d, index:%d\r\n", out, out_card, out_node, out_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Reg_Buf_Buf;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000000 | (nPR_node + 1 << 24) | (in1_node + 1)               ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).tie_in1 = in1;
+  VM->VAM_TABLE->at(nPR_index).in2     = in2;
+  VM->VAM_TABLE->at(nPR_index).out     = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,-----.  ,------. ,------.
+//  |  |) /_ |  .--. '|  .--. '
+//  |  .-.  \|  '--'.'|  '--'.'
+//  |  '--' /|  |\  \ |  |\  \
+//  `------' `--' '--'`--' '--'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int *in1, int size_in1, int in2, int size_in2, int out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  // int       in1_card  = in1 >> 4;
+  // int       in1_node  = in1 & 0xF;
+  // int       in1_index = in1_card * ROW + in1_node;
+
+  int       in2_card  = in2 >> 4;
+  int       in2_node  = in2 & 0xF;
+  int       in2_index = in2_card * ROW + in2_node;
+
+  int       out_card  = out >> 4;
+  int       out_node  = out & 0xF;
+  int       out_index = out_card * ROW + out_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Buf_Reg_Reg\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  // printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+  printf("[DEBUG->vtieio] out:0x%08x, Card:%d, Node:%d, index:%d\r\n", out, out_card, out_node, out_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Buf_Reg_Reg;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000F00 | (nPR_node + 1 << 24) | (in2_node + 1 << 4)          ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).in1     = in1;
+  VM->VAM_TABLE->at(nPR_index).tie_in2 = in2;
+  VM->VAM_TABLE->at(nPR_index).tie_out = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
+//--------------------------------------------------------------------------------------------------
+//  ,------. ,-----.  ,------.
+//  |  .--. '|  |) /_ |  .--. '
+//  |  '--'.'|  .-.  \|  '--'.'
+//  |  |\  \ |  '--' /|  |\  \
+//  `--' '--'`------' `--' '--'
+//--------------------------------------------------------------------------------------------------
+int vtieio(vam_vm_t *VM, int nPR, int in1, int size_in1, int *in2, int size_in2, int out, int size_out)
+{
+#ifdef VERBOSE
+  printf("\r\n");
+#endif
+
+  uint32_t  cmd[4] = {0, 0xDEADBEEF, 0xDEADBEEF, 0xDEADBEEF};
+  char      ibuf[1024];
+  int       err;
+  int       cmd_stream;
+
+  int       nPR_card  = nPR >> 4;
+  int       nPR_node  = nPR & 0xF;
+  int       nPR_index = nPR_card * ROW + nPR_node;
+
+  int       in1_card  = in1 >> 4;
+  int       in1_node  = in1 & 0xF;
+  int       in1_index = in1_card * ROW + in1_node;
+
+  // int       in2_card  = in2 >> 4;
+  // int       in2_node  = in2 & 0xF;
+  // int       in2_index = in2_card * ROW + in2_node;
+
+  int       out_card  = out >> 4;
+  int       out_node  = out & 0xF;
+  int       out_index = out_card * ROW + out_node;
+
+#ifdef VERBOSE
+  printf("[DEBUG->vtieio] Reg_Buf_Reg\r\n");
+  printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+  printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
+  // printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);
+  printf("[DEBUG->vtieio] out:0x%08x, Card:%d, Node:%d, index:%d\r\n", out, out_card, out_node, out_index);
+#endif
+
+  VM->VAM_TABLE->at(nPR_index).node_type = Reg_Buf_Reg;
+
+  // request Mutex for CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread request mutex for cmd_stream\r\n");
+  #endif
+  pthread_mutex_lock(&VM->vm_mutex);
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread get mutex...\r\n");
+  #endif
+  cmd_stream = VM->pico[nPR_card]->CreateStream(50);
+
+  cmd[0] = 0xC0100000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16)                 ;
+  cmd[1] = 0xC0200000 | (nPR_node + 1 << 24) | ((size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF)          ;
+  cmd[2] = 0xC0300001 | (nPR_node + 1 << 24)                                ;
+  cmd[3] = 0xB0000F00 | (nPR_node + 1 << 24) | (in1_node + 1)               ;
+
+  VM->VAM_TABLE->at(nPR_index).cur_cmd = cmd[3];
+  VM->VAM_TABLE->at(nPR_index).tie_in1 = in1;
+  VM->VAM_TABLE->at(nPR_index).in2     = in2;
+  VM->VAM_TABLE->at(nPR_index).tie_out = out;
+
+  VM->VAM_TABLE->at(nPR_index).size_in1 = size_in1;
+  VM->VAM_TABLE->at(nPR_index).size_in2 = size_in2;
+  VM->VAM_TABLE->at(nPR_index).size_out = size_out;
+
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] Sending command to nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
+    printf("[DEBUG->vtieio] Sending command : %d, 0x%x, 0x%x\r\n", (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 >> 16, (size_in1 == 0) ? ( (size_in2 == 0) ? size_out : size_in2 ) : size_in1 & 0x0000FFFF);
+    printf("[DEBUG->vtieio] Sending command :0x%08x, 0x%08x, 0x%08x, 0x%08x\r\n", cmd[0], cmd[1], cmd[2], cmd[3]);
+  #endif
+  err = VM->pico[nPR_card]->WriteStream(cmd_stream, cmd, 16);
+  if (err < 0) {
+    fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    return -1;
+  }
+
+  VM->pico[nPR_card]->CloseStream(cmd_stream);
+  // Releast Mutex on CMD Stream
+  #ifdef VERBOSE
+    printf("[DEBUG->vtieio] vstart thread release mutex...\r\n");
+  #endif
+  pthread_mutex_unlock(&VM->vm_mutex);
+
+  return 0;
+}
 //==================================================================================================
 //  ____    ____   _______.___________.    ___      .______     .___________.
 //  \   \  /   /  /       |           |   /   \     |   _  \    |           |
@@ -1014,7 +1630,7 @@ int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size)
 //     \    / .----)   |      |  |     /  _____  \  |  |\  \----.   |  |
 //      \__/  |_______/       |__|    /__/     \__\ | _| `._____|   |__|
 //==================================================================================================
-int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_out)
+int vstart(vam_vm_t *VM, vector<int> *nPR)//, int size_in1, int size_in2, int size_out)
 {
 #ifdef VERBOSE
   printf("\r\n");
@@ -1054,37 +1670,39 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
     package[i] = new vstart_pk_t[3]; // 3 packages for each node
   }
 
-  for (i = 0; i < size; i++) {
+  for (i = size -1; i > -1; i--) {
     card  = nPR->at(i) >> 4;
     node  = nPR->at(i) & 0xF;
     index = card * ROW + node;
 
 
-    // request Mutex for CMD Stream
-    #ifdef VERBOSE
-      printf("[DEBUG->vstart_TCALL] vstart thread request mutex for cmd_stream\r\n");
-    #endif
-    pthread_mutex_lock(&VM->vm_mutex);
+    // // request Mutex for CMD Stream
+    // #ifdef VERBOSE
+    //   printf("[DEBUG->vstart_TCALL] vstart thread request mutex for cmd_stream\r\n");
+    // #endif
+    // pthread_mutex_lock(&VM->vm_mutex);
 
-    #ifdef VERBOSE
-      printf("[DEBUG->vstart_TCALL] vstart thread get mutex...\r\n");
-    #endif
-    cmd_stream = VM->pico[card]->CreateStream(50);
-    cmd[0] = 0xA0000000 | (node + 1 << 24) ; // Go Command to Acc
-    err = VM->pico[card]->WriteStream(cmd_stream, cmd, 16);
-    if (err < 0) {
-      fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
-      return -1;
-    }
-    #ifdef VERBOSE
-      printf("[DEBUG->vtieio] Opening CMD Stream and send cmd: 0x%08x\r\n", cmd[0]);
-    #endif
-    VM->pico[card]->CloseStream(cmd_stream);
-    // Releast Mutex on CMD Stream
-    #ifdef VERBOSE
-      printf("[DEBUG->vstart_TCALL] vstart thread release mutex...\r\n");
-    #endif
-    pthread_mutex_unlock(&VM->vm_mutex);
+    // #ifdef VERBOSE
+    //   printf("[DEBUG->vstart_TCALL] vstart thread get mutex...\r\n");
+    // #endif
+    // cmd_stream = VM->pico[card]->CreateStream(50);
+    // cmd[0] = 0xA0000000 | (node + 1 << 24) ; // Go Command to Acc
+    // err = VM->pico[card]->WriteStream(cmd_stream, cmd, 16);
+    // if (err < 0) {
+    //   fprintf(stderr, "WriteStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    //   return -1;
+    // }
+    // #ifdef VERBOSE
+    //   printf("[DEBUG->vtieio] Opening CMD Stream and send cmd: 0x%08x\r\n", cmd[0]);
+    // #endif
+    // VM->pico[card]->CloseStream(cmd_stream);
+    // // Releast Mutex on CMD Stream
+    // #ifdef VERBOSE
+    //   printf("[DEBUG->vstart_TCALL] vstart thread release mutex...\r\n");
+    // #endif
+    // pthread_mutex_unlock(&VM->vm_mutex);
+
+    // printf("node_type:%d\r\n", VM->VAM_TABLE->at(index).node_type);
 
     switch (VM->VAM_TABLE->at(index).node_type) {
       //------------------------------------------------------------------------
@@ -1097,7 +1715,6 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
       case Buf_Buf_Buf: {
         #ifdef VERBOSE
           printf("[DEBUG->vstart] Buf_Buf_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
-          printf("[DEBUG->vstart] Buf_Buf_Buf, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
         #endif
 
         package[i][WRITE_IN1].type   = WS;
@@ -1106,7 +1723,7 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
         package[i][WRITE_IN1].index  = index;
         package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
         package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
-        package[i][WRITE_IN1].size   = size_in1;
+        package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
 
         package[i][WRITE_IN2].type   = WS;
         package[i][WRITE_IN2].VM     = VM;
@@ -1114,7 +1731,7 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
         package[i][WRITE_IN2].index  = index;
         package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
         package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
-        package[i][WRITE_IN2].size   = size_in2;
+        package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
 
         package[i][READ_OUT].type   = RS;
         package[i][READ_OUT].VM     = VM;
@@ -1122,16 +1739,26 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
         package[i][READ_OUT].index  = index;
         package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
         package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
-        package[i][READ_OUT].size   = size_out;
+        package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
 
-
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
         threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
 
-        if (package[i][WRITE_IN1].buf != NULL)
+        if (package[i][WRITE_IN1].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
           threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        }
 
-        if (package[i][WRITE_IN2].buf != NULL)
-        threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        if (package[i][WRITE_IN2].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        }
 
         // if (package[WRITE_IN1].buf != NULL)
         //   pthread_join(threads[i][WRITE_IN1], NULL);
@@ -1151,6 +1778,305 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
         // #endif
 
       }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,-----.  ,------.
+      //  |  |) /_ |  |) /_ |  .--. '
+      //  |  .-.  \|  .-.  \|  '--'.'
+      //  |  '--' /|  '--' /|  |\  \
+      //  `------' `------' `--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Buf_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Buf_Buf_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        package[i][WRITE_IN1].type   = WS;
+        package[i][WRITE_IN1].VM     = VM;
+        package[i][WRITE_IN1].card   = card;
+        package[i][WRITE_IN1].index  = index;
+        package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
+        package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
+        package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
+
+        package[i][WRITE_IN2].type   = WS;
+        package[i][WRITE_IN2].VM     = VM;
+        package[i][WRITE_IN2].card   = card;
+        package[i][WRITE_IN2].index  = index;
+        package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
+        package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
+        package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
+
+        if (package[i][WRITE_IN1].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Reg, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        }
+
+        if (package[i][WRITE_IN2].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Reg, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        }
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,------. ,-----.
+      //  |  .--. '|  .--. '|  |) /_
+      //  |  '--'.'|  '--'.'|  .-.  \
+      //  |  |\  \ |  |\  \ |  '--' /
+      //  `--' '--'`--' '--'`------'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Reg_Buf: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Reg_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        package[i][READ_OUT].type   = RS;
+        package[i][READ_OUT].VM     = VM;
+        package[i][READ_OUT].card   = card;
+        package[i][READ_OUT].index  = index;
+        package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
+        package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
+        package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
+
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Reg_Reg_Buf, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+        threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
+
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,------. ,------.
+      //  |  .--. '|  .--. '|  .--. '
+      //  |  '--'.'|  '--'.'|  '--'.'
+      //  |  |\  \ |  |\  \ |  |\  \
+      //  `--' '--'`--' '--'`--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Reg_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Reg_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,------. ,-----.
+      //  |  |) /_ |  .--. '|  |) /_
+      //  |  .-.  \|  '--'.'|  .-.  \
+      //  |  '--' /|  |\  \ |  '--' /
+      //  `------' `--' '--'`------'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Reg_Buf: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Buf_Reg_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        package[i][WRITE_IN1].type   = WS;
+        package[i][WRITE_IN1].VM     = VM;
+        package[i][WRITE_IN1].card   = card;
+        package[i][WRITE_IN1].index  = index;
+        package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
+        package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
+        package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
+
+        // package[i][WRITE_IN2].type   = WS;
+        // package[i][WRITE_IN2].VM     = VM;
+        // package[i][WRITE_IN2].card   = card;
+        // package[i][WRITE_IN2].index  = index;
+        // package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
+        // package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
+        // package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
+
+        package[i][READ_OUT].type   = RS;
+        package[i][READ_OUT].VM     = VM;
+        package[i][READ_OUT].card   = card;
+        package[i][READ_OUT].index  = index;
+        package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
+        package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
+        package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
+
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Reg_Buf, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+        threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
+
+        if (package[i][WRITE_IN1].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Reg_Buf, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        }
+
+        // if (package[i][WRITE_IN2].buf != NULL) {
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Buf_Reg_Buf, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        //   threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        // }
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,-----.  ,-----.
+      //  |  .--. '|  |) /_ |  |) /_
+      //  |  '--'.'|  .-.  \|  .-.  \
+      //  |  |\  \ |  '--' /|  '--' /
+      //  `--' '--'`------' `------'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Buf_Buf: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Buf_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        // package[i][WRITE_IN1].type   = WS;
+        // package[i][WRITE_IN1].VM     = VM;
+        // package[i][WRITE_IN1].card   = card;
+        // package[i][WRITE_IN1].index  = index;
+        // package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
+        // package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
+        // package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
+
+        package[i][WRITE_IN2].type   = WS;
+        package[i][WRITE_IN2].VM     = VM;
+        package[i][WRITE_IN2].card   = card;
+        package[i][WRITE_IN2].index  = index;
+        package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
+        package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
+        package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
+
+        package[i][READ_OUT].type   = RS;
+        package[i][READ_OUT].VM     = VM;
+        package[i][READ_OUT].card   = card;
+        package[i][READ_OUT].index  = index;
+        package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
+        package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
+        package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
+
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Reg_Buf_Buf, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+        threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
+
+        // if (package[i][WRITE_IN1].buf != NULL) {
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Reg_Buf_Buf, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        //   threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        // }
+
+        if (package[i][WRITE_IN2].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Reg_Buf_Buf, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        }
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,------. ,------.
+      //  |  |) /_ |  .--. '|  .--. '
+      //  |  .-.  \|  '--'.'|  '--'.'
+      //  |  '--' /|  |\  \ |  |\  \
+      //  `------' `--' '--'`--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Reg_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Buf_Reg_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        package[i][WRITE_IN1].type   = WS;
+        package[i][WRITE_IN1].VM     = VM;
+        package[i][WRITE_IN1].card   = card;
+        package[i][WRITE_IN1].index  = index;
+        package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
+        package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
+        package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
+
+        // package[i][WRITE_IN2].type   = WS;
+        // package[i][WRITE_IN2].VM     = VM;
+        // package[i][WRITE_IN2].card   = card;
+        // package[i][WRITE_IN2].index  = index;
+        // package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
+        // package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
+        // package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
+
+        // package[i][READ_OUT].type   = RS;
+        // package[i][READ_OUT].VM     = VM;
+        // package[i][READ_OUT].card   = card;
+        // package[i][READ_OUT].index  = index;
+        // package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
+        // package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
+        // package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
+
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        // threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
+
+        if (package[i][WRITE_IN1].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        }
+
+        // if (package[i][WRITE_IN2].buf != NULL) {
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Buf_Buf_Buf, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        //   threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        // }
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,-----.  ,------.
+      //  |  .--. '|  |) /_ |  .--. '
+      //  |  '--'.'|  .-.  \|  '--'.'
+      //  |  |\  \ |  '--' /|  |\  \
+      //  `--' '--'`------' `--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Buf_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Buf_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+        // package[i][WRITE_IN1].type   = WS;
+        // package[i][WRITE_IN1].VM     = VM;
+        // package[i][WRITE_IN1].card   = card;
+        // package[i][WRITE_IN1].index  = index;
+        // package[i][WRITE_IN1].stream = VM->VAM_TABLE->at(index).streamInA;
+        // package[i][WRITE_IN1].buf    = VM->VAM_TABLE->at(index).in1;
+        // package[i][WRITE_IN1].size   = VM->VAM_TABLE->at(index).size_in1;
+
+        package[i][WRITE_IN2].type   = WS;
+        package[i][WRITE_IN2].VM     = VM;
+        package[i][WRITE_IN2].card   = card;
+        package[i][WRITE_IN2].index  = index;
+        package[i][WRITE_IN2].stream = VM->VAM_TABLE->at(index).streamInB;
+        package[i][WRITE_IN2].buf    = VM->VAM_TABLE->at(index).in2;
+        package[i][WRITE_IN2].size   = VM->VAM_TABLE->at(index).size_in2;
+
+        // package[i][READ_OUT].type   = RS;
+        // package[i][READ_OUT].VM     = VM;
+        // package[i][READ_OUT].card   = card;
+        // package[i][READ_OUT].index  = index;
+        // package[i][READ_OUT].stream = VM->VAM_TABLE->at(index).streamOut;
+        // package[i][READ_OUT].buf    = VM->VAM_TABLE->at(index).out;
+        // package[i][READ_OUT].size   = VM->VAM_TABLE->at(index).size_out;
+
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Reg_Buf_Reg, Thread Read Out created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        // threadsRet[i][READ_OUT]  = pthread_create(&threads[i][READ_OUT], NULL, Stream_Threads_Call, (void*) &package[i][READ_OUT]);
+
+        // if (package[i][WRITE_IN1].buf != NULL) {
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart create] Reg_Buf_Reg, Thread Write IN1 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+        //   threadsRet[i][WRITE_IN1] = pthread_create(&threads[i][WRITE_IN1], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN1]);
+        // }
+
+        if (package[i][WRITE_IN2].buf != NULL) {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart create] Reg_Buf_Reg, Thread Write IN2 created, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+          threadsRet[i][WRITE_IN2] = pthread_create(&threads[i][WRITE_IN2], NULL, Stream_Threads_Call, (void*) &package[i][WRITE_IN2]);
+        }
+      }break;
       //------------------------------------------------------------------------
       //     ,--.        ,---.                ,--.  ,--.
       //   ,-|  | ,---. /  .-' ,--,--.,--.,--.|  |,-'  '-.
@@ -1159,7 +2085,7 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
       //   `---'  `----'`--'   `--`--' `----' `--'  `--'
       //------------------------------------------------------------------------
       default: {
-        printf("[DEBUG->vstart] vstart switch case error \r\n");
+        printf("[DEBUG->vstart] vstart switch case error, please check number of steps.\r\n");
         return -1;
       }
     }
@@ -1190,37 +2116,196 @@ int vstart(vam_vm_t *VM, vector<int> *nPR, int size_in1, int size_in2, int size_
           printf("[DEBUG->vstart join] Buf_Buf_Buf, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
         #endif
 
-        if (i == size - 1) {
-          pthread_join(threads[i][READ_OUT],  NULL);
-          #ifdef VERBOSE
-            printf("[DEBUG->vstart join] Buf_Buf_Buf, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
-          #endif
+        pthread_join(threads[i][READ_OUT],  NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Buf_Buf, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
 
           // request Mutex for CMD Stream
-          #ifdef VERBOSE
-            printf("[DEBUG->vstart join] vend thread request mutex for cmd_stream\r\n");
-          #endif
-          pthread_mutex_lock(&VM->vm_mutex);
-          #ifdef VERBOSE
-            printf("[DEBUG->vstart join] vend thread get mutex...\r\n");
-          #endif
+          // #ifdef VERBOSE
+          //   printf("[DEBUG->vstart join] vend thread request mutex for cmd_stream\r\n");
+          // #endif
+          // pthread_mutex_lock(&VM->vm_mutex);
+          // #ifdef VERBOSE
+          //   printf("[DEBUG->vstart join] vend thread get mutex...\r\n");
+          // #endif
           // Read RSP from CMD Stream
-          cmd_stream = VM->pico[card]->CreateStream(50);
-          tmp = new int[4];
-          VM->pico[card]->ReadStream(cmd_stream, tmp, 16);
-          #ifdef VERBOSE
-          for (i = 0; i < 4; i++)
-            printf("[DEBUG->vstart join] RSP from cmd_stream [%d] : 0x%08x\r\n", i, tmp[i]);
-          #endif
-          delete[] tmp;
-          VM->pico[card]->CloseStream(cmd_stream);
-          // Releast Mutex on CMD Stream
-          #ifdef VERBOSE
-            printf("[DEBUG->vstart join] vend thread release mutex...\r\n");
-          #endif
-          pthread_mutex_unlock(&VM->vm_mutex);
-
+          // cmd_stream = VM->pico[card]->CreateStream(50);
+          // tmp = new int[4];
+          // VM->pico[card]->ReadStream(cmd_stream, tmp, 16);
+          // #ifdef VERBOSE
+          // for (i = 0; i < 4; i++)
+          //   printf("[DEBUG->vstart join] RSP from cmd_stream [%d] : 0x%08x\r\n", i, tmp[i]);
+          // #endif
+          // delete[] tmp;
+          // VM->pico[card]->CloseStream(cmd_stream);
+          // // Releast Mutex on CMD Stream
+          // #ifdef VERBOSE
+          //   printf("[DEBUG->vstart join] vend thread release mutex...\r\n");
+          // #endif
+          // pthread_mutex_unlock(&VM->vm_mutex);
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,-----.  ,------.
+      //  |  |) /_ |  |) /_ |  .--. '
+      //  |  .-.  \|  .-.  \|  '--'.'
+      //  |  '--' /|  '--' /|  |\  \
+      //  `------' `------' `--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Buf_Reg: {
+        if (package[i][WRITE_IN1].buf  != NULL) {
+          pthread_join(threads[i][WRITE_IN1], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Buf_Reg, Thread Write IN1 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
         }
+
+        if (package[i][WRITE_IN2].buf != NULL) {
+          pthread_join(threads[i][WRITE_IN2], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Buf_Reg, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+        }
+
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,------. ,-----.
+      //  |  .--. '|  .--. '|  |) /_
+      //  |  '--'.'|  '--'.'|  .-.  \
+      //  |  |\  \ |  |\  \ |  '--' /
+      //  `--' '--'`--' '--'`------'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Reg_Buf: {
+        pthread_join(threads[i][READ_OUT],  NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Reg_Reg_Buf, Thread Read  OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,------. ,------.
+      //  |  .--. '|  .--. '|  .--. '
+      //  |  '--'.'|  '--'.'|  '--'.'
+      //  |  |\  \ |  |\  \ |  |\  \
+      //  `--' '--'`--' '--'`--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Reg_Reg: {
+      // Do Nothing
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,------. ,-----.
+      //  |  |) /_ |  .--. '|  |) /_
+      //  |  .-.  \|  '--'.'|  .-.  \
+      //  |  '--' /|  |\  \ |  '--' /
+      //  `------' `--' '--'`------'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Reg_Buf: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Buf_Reg_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        if (package[i][WRITE_IN1].buf  != NULL)
+          pthread_join(threads[i][WRITE_IN1], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Reg_Buf, Thread Write IN1 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+
+        // if (package[i][WRITE_IN2].buf != NULL)
+        //   pthread_join(threads[i][WRITE_IN2], NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Buf_Reg_Buf, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+
+        pthread_join(threads[i][READ_OUT],  NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Reg_Buf, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,-----.  ,-----.
+      //  |  .--. '|  |) /_ |  |) /_
+      //  |  '--'.'|  .-.  \|  .-.  \
+      //  |  |\  \ |  '--' /|  '--' /
+      //  `--' '--'`------' `------'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Buf_Buf: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Buf_Buf, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        // if (package[i][WRITE_IN1].buf  != NULL)
+        //   pthread_join(threads[i][WRITE_IN1], NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Reg_Buf_Buf, Thread Write IN1 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+
+        if (package[i][WRITE_IN2].buf != NULL)
+          pthread_join(threads[i][WRITE_IN2], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Reg_Buf_Buf, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+
+        pthread_join(threads[i][READ_OUT],  NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Reg_Buf_Buf, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,-----.  ,------. ,------.
+      //  |  |) /_ |  .--. '|  .--. '
+      //  |  .-.  \|  '--'.'|  '--'.'
+      //  |  '--' /|  |\  \ |  |\  \
+      //  `------' `--' '--'`--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Buf_Reg_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Buf_Reg_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        if (package[i][WRITE_IN1].buf  != NULL)
+          pthread_join(threads[i][WRITE_IN1], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Buf_Reg_Reg, Thread Write IN1 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+
+        // if (package[i][WRITE_IN2].buf != NULL)
+        //   pthread_join(threads[i][WRITE_IN2], NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Buf_Reg_Reg, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+
+        // pthread_join(threads[i][READ_OUT],  NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Buf_Reg_Reg, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+      }break;
+      //--------------------------------------------------------------------------------------------------
+      //  ,------. ,-----.  ,------.
+      //  |  .--. '|  |) /_ |  .--. '
+      //  |  '--'.'|  .-.  \|  '--'.'
+      //  |  |\  \ |  '--' /|  |\  \
+      //  `--' '--'`------' `--' '--'
+      //--------------------------------------------------------------------------------------------------
+      case Reg_Buf_Reg: {
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart] Reg_Buf_Reg, Steps:%d\tIn1:%p\tIn2:%p\tOut:%p\r\n", size, VM->VAM_TABLE->at(index).in1, VM->VAM_TABLE->at(index).in2, VM->VAM_TABLE->at(index).out);
+        #endif
+
+        // if (package[i][WRITE_IN1].buf  != NULL)
+        //   pthread_join(threads[i][WRITE_IN1], NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Reg_Buf_Reg, Thread Write IN1 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
+
+        if (package[i][WRITE_IN2].buf != NULL)
+          pthread_join(threads[i][WRITE_IN2], NULL);
+        #ifdef VERBOSE
+          printf("[DEBUG->vstart join] Reg_Buf_Reg, Thread Write IN2 Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        #endif
+
+        // pthread_join(threads[i][READ_OUT],  NULL);
+        // #ifdef VERBOSE
+        //   printf("[DEBUG->vstart join] Reg_Buf_Reg, Thread Write OUT Join, nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR->at(i), card, node, index);
+        // #endif
       }break;
       //------------------------------------------------------------------------
       //     ,--.        ,---.                ,--.  ,--.
@@ -1350,17 +2435,8 @@ int vend(vam_vm_t *VM, vector<int> *nPR, int size_out)
     }
   }
 
-
   return 0;
 }
-
-
-
-
-
-
-
-
 
 // int vstart(vam_vm_t *VM, vector<int> *nPR, int items)
 // {
@@ -1418,5 +2494,77 @@ int vend(vam_vm_t *VM, vector<int> *nPR, int size_out)
 
 
 
+  // BITSTREAM_TABLE->item[VSUB].BitAddr[0] = (uint32_t*)acc_vsub_PR0_bit;
+  // BITSTREAM_TABLE->item[VSUB].BitAddr[1] = (uint32_t*)acc_vsub_PR1_bit;
+  // BITSTREAM_TABLE->item[VSUB].BitAddr[2] = (uint32_t*)acc_vsub_PR2_bit;
+  // BITSTREAM_TABLE->item[VSUB].BitAddr[3] = (uint32_t*)acc_vsub_PR3_bit;
+  // BITSTREAM_TABLE->item[VSUB].BitAddr[4] = (uint32_t*)acc_vsub_PR4_bit;
 
+  // BITSTREAM_TABLE->item[VSUB].BitSize[0] = (uint32_t) acc_vsub_PR0_bit_len;
+  // BITSTREAM_TABLE->item[VSUB].BitSize[1] = (uint32_t) acc_vsub_PR1_bit_len;
+  // BITSTREAM_TABLE->item[VSUB].BitSize[2] = (uint32_t) acc_vsub_PR2_bit_len;
+  // BITSTREAM_TABLE->item[VSUB].BitSize[3] = (uint32_t) acc_vsub_PR3_bit_len;
+  // BITSTREAM_TABLE->item[VSUB].BitSize[4] = (uint32_t) acc_vsub_PR4_bit_len;
+
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[A2PB2].BitAddr[0] = (uint32_t*)acc_a2pb2_PR0_bit;
+  // BITSTREAM_TABLE->item[A2PB2].BitAddr[1] = (uint32_t*)acc_a2pb2_PR1_bit;
+  // BITSTREAM_TABLE->item[A2PB2].BitAddr[2] = (uint32_t*)acc_a2pb2_PR2_bit;
+  // BITSTREAM_TABLE->item[A2PB2].BitAddr[3] = (uint32_t*)acc_a2pb2_PR3_bit;
+  // BITSTREAM_TABLE->item[A2PB2].BitAddr[4] = (uint32_t*)acc_a2pb2_PR4_bit;
+
+  // BITSTREAM_TABLE->item[A2PB2].BitSize[0] = (uint32_t) acc_a2pb2_PR0_bit_len;
+  // BITSTREAM_TABLE->item[A2PB2].BitSize[1] = (uint32_t) acc_a2pb2_PR1_bit_len;
+  // BITSTREAM_TABLE->item[A2PB2].BitSize[2] = (uint32_t) acc_a2pb2_PR2_bit_len;
+  // BITSTREAM_TABLE->item[A2PB2].BitSize[3] = (uint32_t) acc_a2pb2_PR3_bit_len;
+  // BITSTREAM_TABLE->item[A2PB2].BitSize[4] = (uint32_t) acc_a2pb2_PR4_bit_len;
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[VAPBB].BitAddr[0] = (uint32_t*)acc_vapbb_PR0_bit;
+  // BITSTREAM_TABLE->item[VAPBB].BitAddr[1] = (uint32_t*)acc_vapbb_PR1_bit;
+  // BITSTREAM_TABLE->item[VAPBB].BitAddr[2] = (uint32_t*)acc_vapbb_PR2_bit;
+  // BITSTREAM_TABLE->item[VAPBB].BitAddr[3] = (uint32_t*)acc_vapbb_PR3_bit;
+  // BITSTREAM_TABLE->item[VAPBB].BitAddr[4] = (uint32_t*)acc_vapbb_PR4_bit;
+
+  // BITSTREAM_TABLE->item[VAPBB].BitSize[0] = (uint32_t) acc_vapbb_PR0_bit_len;
+  // BITSTREAM_TABLE->item[VAPBB].BitSize[1] = (uint32_t) acc_vapbb_PR1_bit_len;
+  // BITSTREAM_TABLE->item[VAPBB].BitSize[2] = (uint32_t) acc_vapbb_PR2_bit_len;
+  // BITSTREAM_TABLE->item[VAPBB].BitSize[3] = (uint32_t) acc_vapbb_PR3_bit_len;
+  // BITSTREAM_TABLE->item[VAPBB].BitSize[4] = (uint32_t) acc_vapbb_PR4_bit_len;
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[VAAPB].BitAddr[0] = (uint32_t*)acc_vaapb_PR0_bit;
+  // BITSTREAM_TABLE->item[VAAPB].BitAddr[1] = (uint32_t*)acc_vaapb_PR1_bit;
+  // BITSTREAM_TABLE->item[VAAPB].BitAddr[2] = (uint32_t*)acc_vaapb_PR2_bit;
+  // BITSTREAM_TABLE->item[VAAPB].BitAddr[3] = (uint32_t*)acc_vaapb_PR3_bit;
+  // BITSTREAM_TABLE->item[VAAPB].BitAddr[4] = (uint32_t*)acc_vaapb_PR4_bit;
+
+  // BITSTREAM_TABLE->item[VAAPB].BitSize[0] = (uint32_t) acc_vaapb_PR0_bit_len;
+  // BITSTREAM_TABLE->item[VAAPB].BitSize[1] = (uint32_t) acc_vaapb_PR1_bit_len;
+  // BITSTREAM_TABLE->item[VAAPB].BitSize[2] = (uint32_t) acc_vaapb_PR2_bit_len;
+  // BITSTREAM_TABLE->item[VAAPB].BitSize[3] = (uint32_t) acc_vaapb_PR3_bit_len;
+  // BITSTREAM_TABLE->item[VAAPB].BitSize[4] = (uint32_t) acc_vaapb_PR4_bit_len;
+
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[0] = (uint32_t*)acc_sql_select_PR0_bit;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[1] = (uint32_t*)acc_sql_select_PR1_bit;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[2] = (uint32_t*)acc_sql_select_PR2_bit;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[3] = (uint32_t*)acc_sql_select_PR3_bit;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitAddr[4] = (uint32_t*)acc_sql_select_PR4_bit;
+
+  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[0] = (uint32_t) acc_sql_select_PR0_bit_len;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[1] = (uint32_t) acc_sql_select_PR1_bit_len;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[2] = (uint32_t) acc_sql_select_PR2_bit_len;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[3] = (uint32_t) acc_sql_select_PR3_bit_len;
+  // BITSTREAM_TABLE->item[SQLSELECT].BitSize[4] = (uint32_t) acc_sql_select_PR4_bit_len;
+  // //////////////////////////////////////////////////////////////////////////////
+  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[0] = (uint32_t*)acc_f_avg_PR0_bit;
+  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[1] = (uint32_t*)acc_f_avg_PR1_bit;
+  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[2] = (uint32_t*)acc_f_avg_PR2_bit;
+  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[3] = (uint32_t*)acc_f_avg_PR3_bit;
+  // BITSTREAM_TABLE->item[SQLAVG].BitAddr[4] = (uint32_t*)acc_f_avg_PR4_bit;
+
+  // BITSTREAM_TABLE->item[SQLAVG].BitSize[0] = (uint32_t) acc_f_avg_PR0_bit_len;
+  // BITSTREAM_TABLE->item[SQLAVG].BitSize[1] = (uint32_t) acc_f_avg_PR1_bit_len;
+  // BITSTREAM_TABLE->item[SQLAVG].BitSize[2] = (uint32_t) acc_f_avg_PR2_bit_len;
+  // BITSTREAM_TABLE->item[SQLAVG].BitSize[3] = (uint32_t) acc_f_avg_PR3_bit_len;
+  // BITSTREAM_TABLE->item[SQLAVG].BitSize[4] = (uint32_t) acc_f_avg_PR4_bit_len;
 

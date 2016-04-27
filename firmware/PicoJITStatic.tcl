@@ -6,8 +6,8 @@ set vivado_archgen_path $tmpstr
 
 set current_path $tmpstr/[current_project]
 set src_path $current_path/$proname.srcs
-set_property ip_repo_paths $tmpstr/HLS_ACC [current_project]
-update_ip_catalog
+# set_property ip_repo_paths $tmpstr/HLS_ACC [current_project]
+# update_ip_catalog
 add_files -norecurse -scan_for_includes $tmpstr/fifo_128_32.xci
 import_files -norecurse                 $tmpstr/fifo_128_32.xci
 add_files -norecurse -scan_for_includes $tmpstr/AXIS_fifo_32x16.xci
@@ -18,8 +18,8 @@ add_files -norecurse -scan_for_includes $tmpstr/jit_clk.xci
 import_files -norecurse                 $tmpstr/jit_clk.xci
 add_files -norecurse -scan_for_includes $tmpstr/jit_reset.xci
 import_files -norecurse                 $tmpstr/jit_reset.xci
-add_files -norecurse -scan_for_includes $tmpstr/jit_blackbox.xci
-import_files -norecurse                 $tmpstr/jit_blackbox.xci
+# add_files -norecurse -scan_for_includes $tmpstr/jit_blackbox.xci
+# import_files -norecurse                 $tmpstr/jit_blackbox.xci
 update_compile_order -fileset sources_1
 report_ip_status -name ip_status
 upgrade_ip [get_ips *]
@@ -33,10 +33,21 @@ set run_path $current_path/$proname.runs
 set new_path $src_path/$ModuleName/new
 set xdc_name $ModuleName\_ooc.xdc
 
-set_property generate_synth_checkpoint true [get_files $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
-generate_target all [get_files $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
-create_ip_run [get_files -of_objects [get_fileset sources_1] $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
-launch_runs $ModuleName\_synth_1 -jobs 12
+file mkdir $new_path
+create_fileset -blockset -define_from $ModuleName $ModuleName
+close [ open $new_path/$xdc_name w ]
+add_files -fileset $ModuleName $new_path/$xdc_name
+set filename $new_path/$xdc_name
+set fileId [open $filename "w"]
+puts -nonewline $fileId "#Sen Ma Created"
+close $fileId
+set_property USED_IN {out_of_context synthesis implementation}  [get_files $new_path/$xdc_name]
+set synth_name $ModuleName\_synth_1
+
+# set_property generate_synth_checkpoint true [get_files $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
+# generate_target all [get_files $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
+# create_ip_run [get_files -of_objects [get_fileset sources_1] $src_path/sources_1/ip/$ModuleName/$ModuleName.xci]
+# launch_runs $ModuleName\_synth_1 -jobs 12
 
 cd $vivado_archgen_path/$sysname
 exec mkdir $sysname.bits
