@@ -142,7 +142,6 @@ void * vdel_Threads_Call          (void *pk);
 int    vlpr                       (vam_vm_t *VM, int nPR, int PR_NAME);
 void * vlpr_Threads_Call          (void *pk);
 int vtieio(vam_vm_t *VM, int nPR, int *in1, int *in2, int *out, int size);
-
 //==================================================================================================
 void * WriteStream_Threads_Call(void *pk)
 {
@@ -1212,7 +1211,7 @@ int vtieio(vam_vm_t *VM, int nPR, int in1, int size_in1, int in2, int size_in2, 
   int       out_index = out_card * ROW + out_node;
 
 #ifdef VERBOSE
-  printf("[DEBUG->vtieio] Reg_Reg_Buf\r\n");
+  printf("[DEBUG->vtieio] Reg_Reg_Reg\r\n");
   printf("[DEBUG->vtieio] nPR:0x%08x, Card:%d, Node:%d, index:%d\r\n", nPR, nPR_card, nPR_node, nPR_index);
   printf("[DEBUG->vtieio] in1:0x%08x, Card:%d, Node:%d, index:%d\r\n", in1, in1_card, in1_node, in1_index);
   printf("[DEBUG->vtieio] in2:0x%08x, Card:%d, Node:%d, index:%d\r\n", in2, in2_card, in2_node, in2_index);

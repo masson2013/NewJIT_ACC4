@@ -15,32 +15,18 @@ using namespace std;
 
 #define VERBOSE
 #define VERBOSE_THREAD
-// #define P_TEST
 #include "jit_isa.h"
-// 1024 * 10 * 1024
-// 524880000 = 1.9 GBytes
-// 402653184 = 1.5 GBytes
-// 314572800 = 1.2 GBytes
-// 78643200  = 300 MBytes
-// 52428800  = 200 MBytes
-// 26214400  = 100 MBytes
-// FCCM Test:
-
-// #define THREADS 16
 #define SIZE 32
-// #define SIZE 0x10000
-// #define SIZE    (MAX_SIZE + 32) * THREADS
-// #define SIZE    65528 * THREADS
-
 #define SWSIZE  SIZE
-// #define STEPS   3
 #define MAX_SIZE   65528
 
-
-// #define ITEMS   SIZE
-
-// #define DEBUG
-#define NODEBUG
+// #define BBB
+// #define BBR_RRB
+// #define RBB
+// #define BRB
+// #define RBR
+// #define BRR
+#define RRR
 
 typedef struct {
   int key;
@@ -137,75 +123,89 @@ void * VMUL_Threads_Call(void *pk)
   int         err;
 
   // VADD BBB^
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, p->PR0_Out, p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef BBB
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, p->PR0_Out, p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR^ + BBR + RRB^
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(2), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(2), nPR->at(0), p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef BBR_RRB
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(2), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(2), nPR->at(0), p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR + RBB^
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(1), nPR->at(0), p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, p->PR1_Out, p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef RBB
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), nPR->at(0), p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, p->PR1_Out, p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR + BRB^
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, nPR->at(0), p->SizePR1_In2, p->PR1_Out, p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef BRB
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, nPR->at(0), p->SizePR1_In2, p->PR1_Out, p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR + RBR^ + BRB
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(1), nPR->at(0), p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(2), p->PR2_In1, p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef RBR
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), nPR->at(0), p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(2), p->PR2_In1, p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR + BRR^ + BRB
-  // err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, nPR->at(0), p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vtieio(VM, nPR->at(2), p->PR2_In1, p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
-  // err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  // err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef BRR
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(1), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, nPR->at(0), p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(2), p->PR2_In1, p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, p->PR2_Out, p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
   // VADD BBR + BBR + RRR^ + RBB
-  err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
-  err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  err =   vlpr(VM, nPR->at(3), VADD);                                                                                   errCheck(err, FUN_VLPR);
-  err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(2), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
-  err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
-  err = vtieio(VM, nPR->at(2), nPR->at(0), p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, nPR->at(3), p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
-  err = vtieio(VM, nPR->at(3), nPR->at(2), p->SizePR3_In1, p->PR3_In2, p->SizePR3_In2, p->PR3_Out, p->SizePR3_Out);     errCheck(err, FUN_VTIEIO);
-  err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
-  err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #ifdef RRR
+    err =   vnew(VM, nPR);                                                                                                errCheck(err, FUN_VNEW);
+    err =   vlpr(VM, nPR->at(0), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(1), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(2), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err =   vlpr(VM, nPR->at(3), VADD);                                                                                   errCheck(err, FUN_VLPR);
+    err = vtieio(VM, nPR->at(0), p->PR0_In1, p->SizePR0_In1, p->PR0_In2, p->SizePR0_In2, nPR->at(2), p->SizePR0_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(1), p->PR1_In1, p->SizePR1_In1, p->PR1_In2, p->SizePR1_In2, nPR->at(2), p->SizePR1_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(2), nPR->at(0), p->SizePR2_In1, nPR->at(1), p->SizePR2_In2, nPR->at(3), p->SizePR2_Out);     errCheck(err, FUN_VTIEIO);
+    err = vtieio(VM, nPR->at(3), nPR->at(2), p->SizePR3_In1, p->PR3_In2, p->SizePR3_In2, p->PR3_Out, p->SizePR3_Out);     errCheck(err, FUN_VTIEIO);
+    err = vstart(VM, nPR);                                                                                                errCheck(err, FUN_VSTART);
+    err =   vdel(VM, nPR);                                                                                                errCheck(err, FUN_VDEL);
+  #endif
 
 #ifdef VERBOSE_THREAD
   printf("[DEBUG->task_thread] task thread done\r\n");
@@ -309,16 +309,37 @@ int main(int argc, char* argv[])
     D[i] = i + 3;
   }
 
-
   //////////////////////////////////////////////////////////////////////////////
   gettimeofday(&start, NULL);
   InsertionSort(F, SWSIZE * 4);
   for (i = 0; i < SWSIZE; i++) {
-    // F[i] = A[i] + B[i];
-    // F[i] = (A[i] + B[i]) + (C[i] + D[i]);
-    // F[i] = A[i] + B[i] + C[i];
-    // F[i] = A[i] + B[i] + C[i] + D[i];
-    F[i] = (A[i] + A[i]) + (B[i] + B[i]) + C[i];
+    #ifdef BBB
+      F[i] = A[i] + B[i];
+    #endif
+
+    #ifdef BBR_RRB
+      F[i] = (A[i] + B[i]) + (C[i] + D[i]);
+    #endif
+
+    #ifdef RBB
+      F[i] = A[i] + B[i] + C[i];
+    #endif
+
+    #ifdef BRB
+      F[i] = A[i] + B[i] + C[i];
+    #endif
+
+    #ifdef RBR
+      F[i] = A[i] + B[i] + C[i] + D[i];
+    #endif
+
+    #ifdef BRR
+      F[i] = A[i] + B[i] + C[i] + D[i];
+    #endif
+
+    #ifdef RRR
+      F[i] = (A[i] + A[i]) + (B[i] + B[i]) + C[i];
+    #endif
   }
   gettimeofday(&end, NULL);
   timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
@@ -331,11 +352,37 @@ int main(int argc, char* argv[])
   VAM_VM_INIT(&VM, argc, argv);
   // VAM_TABLE_SHOW(VM);
 
-
-
   {
     int THREADS = 1;
-    int STEPS   = 4;
+
+    #ifdef BBB
+      int STEPS = 1;
+    #endif
+
+    #ifdef BBR_RRB
+      int STEPS = 3;
+    #endif
+
+    #ifdef RBB
+      int STEPS = 2;
+    #endif
+
+    #ifdef BRB
+      int STEPS = 2;
+    #endif
+
+    #ifdef RBR
+      int STEPS = 3;
+    #endif
+
+    #ifdef BRR
+      int STEPS = 3;
+    #endif
+
+    #ifdef RRR
+      int STEPS = 4;
+    #endif
+
     pthread_t thread[THREADS];
     task_pk_t task_pkg[THREADS];
 
@@ -350,33 +397,145 @@ int main(int argc, char* argv[])
       task_pkg[i].nPR     = &nPR[i];
       task_pkg[i].len     = SIZE / THREADS;
 
-      task_pkg[i].PR0_In1      = A;
-      task_pkg[i].SizePR0_In1  = task_pkg[i].len;
-      task_pkg[i].PR0_In2      = A;
-      task_pkg[i].SizePR0_In2  = task_pkg[i].len;
-      task_pkg[i].PR0_Out      = NULL;
-      task_pkg[i].SizePR0_Out  = 0;
+      #ifdef BBB
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = E;
+        task_pkg[i].SizePR0_Out  = task_pkg[i].len;
+      #endif
 
-      task_pkg[i].PR1_In1      = B;
-      task_pkg[i].SizePR1_In1  = task_pkg[i].len;
-      task_pkg[i].PR1_In2      = B;
-      task_pkg[i].SizePR1_In2  = task_pkg[i].len;
-      task_pkg[i].PR1_Out      = NULL;
-      task_pkg[i].SizePR1_Out  = 0;
+      #ifdef BBR_RRB
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
 
-      task_pkg[i].PR2_In1      = NULL;
-      task_pkg[i].SizePR2_In1  = 0;
-      task_pkg[i].PR2_In2      = NULL;
-      task_pkg[i].SizePR2_In2  = 0;
-      task_pkg[i].PR2_Out      = NULL;
-      task_pkg[i].SizePR2_Out  = 0;
+        task_pkg[i].PR1_In1      = C;
+        task_pkg[i].SizePR1_In1  = task_pkg[i].len;
+        task_pkg[i].PR1_In2      = D;
+        task_pkg[i].SizePR1_In2  = task_pkg[i].len;
+        task_pkg[i].PR1_Out      = NULL;
+        task_pkg[i].SizePR1_Out  = 0;
 
-      task_pkg[i].PR3_In1      = NULL;
-      task_pkg[i].SizePR3_In1  = 0;
-      task_pkg[i].PR3_In2      = C;
-      task_pkg[i].SizePR3_In2  = task_pkg[i].len;
-      task_pkg[i].PR3_Out      = E;
-      task_pkg[i].SizePR3_Out  = task_pkg[i].len;
+        task_pkg[i].PR2_In1      = NULL;
+        task_pkg[i].SizePR2_In1  = 0;
+        task_pkg[i].PR2_In2      = NULL;
+        task_pkg[i].SizePR2_In2  = 0;
+        task_pkg[i].PR2_Out      = E;
+        task_pkg[i].SizePR2_Out  = task_pkg[i].len;
+      #endif
+
+      #ifdef RBB
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
+
+        task_pkg[i].PR1_In1      = NULL;
+        task_pkg[i].SizePR1_In1  = 0;
+        task_pkg[i].PR1_In2      = C;
+        task_pkg[i].SizePR1_In2  = task_pkg[i].len;
+        task_pkg[i].PR1_Out      = E;
+        task_pkg[i].SizePR1_Out  = task_pkg[i].len;
+      #endif
+
+      #ifdef BRB
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
+
+        task_pkg[i].PR1_In1      = C;
+        task_pkg[i].SizePR1_In1  = task_pkg[i].len;
+        task_pkg[i].PR1_In2      = NULL;
+        task_pkg[i].SizePR1_In2  = 0;
+        task_pkg[i].PR1_Out      = E;
+        task_pkg[i].SizePR1_Out  = task_pkg[i].len;
+      #endif
+
+      #ifdef RBR
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
+
+        task_pkg[i].PR1_In1      = NULL;
+        task_pkg[i].SizePR1_In1  = 0;
+        task_pkg[i].PR1_In2      = C;
+        task_pkg[i].SizePR1_In2  = task_pkg[i].len;
+        task_pkg[i].PR1_Out      = NULL;
+        task_pkg[i].SizePR1_Out  = 0;
+
+        task_pkg[i].PR2_In1      = D;
+        task_pkg[i].SizePR2_In1  = task_pkg[i].len;
+        task_pkg[i].PR2_In2      = NULL;
+        task_pkg[i].SizePR2_In2  = 0;
+        task_pkg[i].PR2_Out      = E;
+        task_pkg[i].SizePR2_Out  = task_pkg[i].len;
+      #endif
+
+      #ifdef BRR
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = B;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
+
+        task_pkg[i].PR1_In1      = C;
+        task_pkg[i].SizePR1_In1  = task_pkg[i].len;
+        task_pkg[i].PR1_In2      = NULL;
+        task_pkg[i].SizePR1_In2  = 0;
+        task_pkg[i].PR1_Out      = NULL;
+        task_pkg[i].SizePR1_Out  = 0;
+
+        task_pkg[i].PR2_In1      = D;
+        task_pkg[i].SizePR2_In1  = task_pkg[i].len;
+        task_pkg[i].PR2_In2      = NULL;
+        task_pkg[i].SizePR2_In2  = 0;
+        task_pkg[i].PR2_Out      = E;
+        task_pkg[i].SizePR2_Out  = task_pkg[i].len;
+      #endif
+
+      #ifdef RRR
+        task_pkg[i].PR0_In1      = A;
+        task_pkg[i].SizePR0_In1  = task_pkg[i].len;
+        task_pkg[i].PR0_In2      = A;
+        task_pkg[i].SizePR0_In2  = task_pkg[i].len;
+        task_pkg[i].PR0_Out      = NULL;
+        task_pkg[i].SizePR0_Out  = 0;
+
+        task_pkg[i].PR1_In1      = B;
+        task_pkg[i].SizePR1_In1  = task_pkg[i].len;
+        task_pkg[i].PR1_In2      = B;
+        task_pkg[i].SizePR1_In2  = task_pkg[i].len;
+        task_pkg[i].PR1_Out      = NULL;
+        task_pkg[i].SizePR1_Out  = 0;
+
+        task_pkg[i].PR2_In1      = NULL;
+        task_pkg[i].SizePR2_In1  = 0;
+        task_pkg[i].PR2_In2      = NULL;
+        task_pkg[i].SizePR2_In2  = 0;
+        task_pkg[i].PR2_Out      = NULL;
+        task_pkg[i].SizePR2_Out  = task_pkg[i].len; // RRR needs a size.
+
+        task_pkg[i].PR3_In1      = NULL;
+        task_pkg[i].SizePR3_In1  = 0;
+        task_pkg[i].PR3_In2      = C;
+        task_pkg[i].SizePR3_In2  = task_pkg[i].len;
+        task_pkg[i].PR3_Out      = E;
+        task_pkg[i].SizePR3_Out  = task_pkg[i].len;
+      #endif
     }
 
     gettimeofday(&start, NULL);
@@ -507,248 +666,3 @@ JIT    4 threads :  1,493,106 us  Passed!
 JIT    2 threads :  2,736,046 us  Passed!
 JIT    1 threads :  5,603,247 us  Passed!
 */
-
-
-
-
-      // task_pkg[i].In1     =
-      // task_pkg[i].SizeIn1 =
-      // task_pkg[i].In2     = &B[i * task_pkg[i].len];
-      // task_pkg[i].SizeIn2 = task_pkg[i].len;
-      // // task_pkg[i].In2     = NULL; //&B[i * task_pkg[i].len];
-      // // task_pkg[i].SizeIn2 = 0;    //task_pkg[i].len;
-      // task_pkg[i].Out     = &D[i * task_pkg[i].len];
-      // task_pkg[i].SizeOut = task_pkg[i].len * 2;
-
-  // if (items >= MAX_SIZE) {
-  //   sizeIn1  = MAX_SIZE;
-  //   sizeIn2  = MAX_SIZE;
-  //   sizeOut  = MAX_SIZE;
-  // }
-  // else {
-  //   sizeIn1  = p->SizeIn1;
-  //   sizeIn2  = p->SizeIn2;
-  //   sizeOut  = p->SizeOut;
-  // }
-
-  // err =   vnew(VM, nPR);                                                        errCheck(err, FUN_VNEW);
-  // err =   vlpr(VM, nPR->at(0),  VMUL);                                          errCheck(err, FUN_VLPR);
-  // err = vtieio(VM, nPR->at(0),  In1,  In2,  Out, sizeIn1);                      errCheck(err, FUN_VTIEIO);
-
-  // for (int i = 0; i < iter; i++) {
-  //   err = vstart(VM, nPR, MAX_SIZE, MAX_SIZE, MAX_SIZE);                        errCheck(err, FUN_VSTART);
-  // }
-
-  // if (reminder != 0) {
-  //   err = vtieio(VM, nPR->at(0),  In1,  In2,  Out, reminder);                   errCheck(err, FUN_VTIEIO);
-  //   err = vstart(VM, nPR, reminder, reminder, reminder);                        errCheck(err, FUN_VSTART);
-  // }
-  // err =   vdel(VM, nPR);                                                        errCheck(err, FUN_VDEL);
-
-
-
-  // pe_t package[THREADS];
-  // for (i = 0; i < THREADS; i++) {
-  //   package[i].key = i;
-  //   package[i].len = SIZE / THREADS;
-  //   // int alignment_buf
-  //   package[i].A = &A[i * package[i].len];
-  //   package[i].B = &B[i * package[i].len];
-  //   package[i].C = &D[i * package[i].len];
-  // }
-
-  // {
-  //   int THREADS = 16;
-  //   pthread_t thread[THREADS];
-  //   task_pk_t task_pkg[THREADS];
-
-  //   vector<vector<int> > nPR(THREADS);
-  //   for (i = 0; i < THREADS; i++) {
-  //     nPR[i].resize(STEPS);
-  //   }
-
-  //   for (i = 0; i < THREADS; i++) {
-  //     task_pkg[i].task_id = i;
-  //     task_pkg[i].VM      = &VM;
-  //     task_pkg[i].nPR     = &nPR[i];
-  //     task_pkg[i].len     = SIZE / THREADS;
-  //     task_pkg[i].In1     = &A[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn1 = task_pkg[i].len;
-  //     task_pkg[i].In2     = &B[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn2 = task_pkg[i].len;
-  //     task_pkg[i].Out     = &D[i * task_pkg[i].len];
-  //     task_pkg[i].SizeOut = task_pkg[i].len;
-  //   }
-
-  //   gettimeofday(&start, NULL);
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_create(&thread[i], NULL, VMUL_Threads_Call, (void *)&task_pkg[i]);
-  //   }
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_join(thread[i], NULL);
-  //   }
-  //   gettimeofday(&end, NULL);
-  //   timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
-  //   printf("JIT %'4d threads :\t%'9d us\t", THREADS, timeuse);
-
-  //   for (i = 0; i < SWSIZE; i++) {
-  //     // printf("%d:\tA:%d\tB:%d\tC:%d\tD:%d\r\n", i, A[i], B[i], C[i], D[i]);
-  //     if (C[i] != D[i]) {
-  //       printf("Error at %d:\tA:%d\tB:%d\tC:%d\tD:%d\r\nFailed!\r\n", i, A[i], B[i], C[i], D[i]);
-  //       VAM_VM_CLEAN(&VM);
-  //       delete[] A;
-  //       delete[] B;
-  //       delete[] C;
-  //       delete[] D;
-  //       exit(1);
-  //     }
-  //   }
-  //   printf("Passed!\r\n");
-  // }
-
-  // {
-  //   int THREADS = 8;
-  //   pthread_t thread[THREADS];
-  //   task_pk_t task_pkg[THREADS];
-
-  //   vector<vector<int> > nPR(THREADS);
-  //   for (i = 0; i < THREADS; i++) {
-  //     nPR[i].resize(STEPS);
-  //   }
-
-  //   for (i = 0; i < THREADS; i++) {
-  //     task_pkg[i].task_id = i;
-  //     task_pkg[i].VM      = &VM;
-  //     task_pkg[i].nPR     = &nPR[i];
-  //     task_pkg[i].len     = SIZE / THREADS;
-  //     task_pkg[i].In1     = &A[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn1 = task_pkg[i].len;
-  //     task_pkg[i].In2     = &B[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn2 = task_pkg[i].len;
-  //     task_pkg[i].Out     = &D[i * task_pkg[i].len];
-  //     task_pkg[i].SizeOut = task_pkg[i].len;
-  //   }
-
-  //   gettimeofday(&start, NULL);
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_create(&thread[i], NULL, VMUL_Threads_Call, (void *)&task_pkg[i]);
-  //   }
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_join(thread[i], NULL);
-  //   }
-  //   gettimeofday(&end, NULL);
-  //   timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
-  //   printf("JIT %'4d threads :\t%'9d us\t", THREADS, timeuse);
-
-  //   for (i = 0; i < SWSIZE; i++) {
-  //     // printf("%d:\tA:%d\tB:%d\tC:%d\tD:%d\r\n", i, A[i], B[i], C[i], D[i]);
-  //     if (C[i] != D[i]) {
-  //       printf("Error at %d:\tA:%d\tB:%d\tC:%d\tD:%d\r\nFailed!\r\n", i, A[i], B[i], C[i], D[i]);
-  //       VAM_VM_CLEAN(&VM);
-  //       delete[] A;
-  //       delete[] B;
-  //       delete[] C;
-  //       delete[] D;
-  //       exit(1);
-  //     }
-  //   }
-  //   printf("Passed!\r\n");
-  // }
-
-  // {
-  //   int THREADS = 4;
-  //   pthread_t thread[THREADS];
-  //   task_pk_t task_pkg[THREADS];
-
-  //   vector<vector<int> > nPR(THREADS);
-  //   for (i = 0; i < THREADS; i++) {
-  //     nPR[i].resize(STEPS);
-  //   }
-
-  //   for (i = 0; i < THREADS; i++) {
-  //     task_pkg[i].task_id = i;
-  //     task_pkg[i].VM      = &VM;
-  //     task_pkg[i].nPR     = &nPR[i];
-  //     task_pkg[i].len     = SIZE / THREADS;
-  //     task_pkg[i].In1     = &A[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn1 = task_pkg[i].len;
-  //     task_pkg[i].In2     = &B[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn2 = task_pkg[i].len;
-  //     task_pkg[i].Out     = &D[i * task_pkg[i].len];
-  //     task_pkg[i].SizeOut = task_pkg[i].len;
-  //   }
-
-  //   gettimeofday(&start, NULL);
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_create(&thread[i], NULL, VMUL_Threads_Call, (void *)&task_pkg[i]);
-  //   }
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_join(thread[i], NULL);
-  //   }
-  //   gettimeofday(&end, NULL);
-  //   timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
-  //   printf("JIT %'4d threads :\t%'9d us\t", THREADS, timeuse);
-
-  //   for (i = 0; i < SWSIZE; i++) {
-  //     // printf("%d:\tA:%d\tB:%d\tC:%d\tD:%d\r\n", i, A[i], B[i], C[i], D[i]);
-  //     if (C[i] != D[i]) {
-  //       printf("Error at %d:\tA:%d\tB:%d\tC:%d\tD:%d\r\nFailed!\r\n", i, A[i], B[i], C[i], D[i]);
-  //       VAM_VM_CLEAN(&VM);
-  //       delete[] A;
-  //       delete[] B;
-  //       delete[] C;
-  //       delete[] D;
-  //       exit(1);
-  //     }
-  //   }
-  //   printf("Passed!\r\n");
-  // }
-
-  // {
-  //   int THREADS = 2;
-  //   pthread_t thread[THREADS];
-  //   task_pk_t task_pkg[THREADS];
-
-  //   vector<vector<int> > nPR(THREADS);
-  //   for (i = 0; i < THREADS; i++) {
-  //     nPR[i].resize(STEPS);
-  //   }
-
-  //   for (i = 0; i < THREADS; i++) {
-  //     task_pkg[i].task_id = i;
-  //     task_pkg[i].VM      = &VM;
-  //     task_pkg[i].nPR     = &nPR[i];
-  //     task_pkg[i].len     = SIZE / THREADS;
-  //     task_pkg[i].In1     = &A[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn1 = task_pkg[i].len;
-  //     task_pkg[i].In2     = &B[i * task_pkg[i].len];
-  //     task_pkg[i].SizeIn2 = task_pkg[i].len;
-  //     task_pkg[i].Out     = &D[i * task_pkg[i].len];
-  //     task_pkg[i].SizeOut = task_pkg[i].len;
-  //   }
-
-  //   gettimeofday(&start, NULL);
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_create(&thread[i], NULL, VMUL_Threads_Call, (void *)&task_pkg[i]);
-  //   }
-  //   for (i = 0; i < THREADS; i++) {
-  //     pthread_join(thread[i], NULL);
-  //   }
-  //   gettimeofday(&end, NULL);
-  //   timeuse = 1000000 * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
-  //   printf("JIT %'4d threads :\t%'9d us\t", THREADS, timeuse);
-
-  //   for (i = 0; i < SWSIZE; i++) {
-  //     // printf("%d:\tA:%d\tB:%d\tC:%d\tD:%d\r\n", i, A[i], B[i], C[i], D[i]);
-  //     if (C[i] != D[i]) {
-  //       printf("Error at %d:\tA:%d\tB:%d\tC:%d\tD:%d\r\nFailed!\r\n", i, A[i], B[i], C[i], D[i]);
-  //       VAM_VM_CLEAN(&VM);
-  //       delete[] A;
-  //       delete[] B;
-  //       delete[] C;
-  //       delete[] D;
-  //       exit(1);
-  //     }
-  //   }
-  //   printf("Passed!\r\n");
-  // }
